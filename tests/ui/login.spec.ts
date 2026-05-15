@@ -1,14 +1,10 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '../../fixtures/baseFixture';
 
-import { LoginPage } from '../../pages/LoginPage';
-
-test('Valid user should login successfully', async ({ page }) => {
-
-    const loginPage = new LoginPage(page);
+test('Valid user should login successfully', async ({ loginPage, page }) => {
 
     await loginPage.navigateToLoginPage();
 
-    await loginPage.login('standard_user','secret_sauce' );
+    await loginPage.login('standard_user', 'secret_sauce');
 
     await expect(page).toHaveURL(/inventory/);
 });
