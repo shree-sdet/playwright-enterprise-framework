@@ -36,7 +36,7 @@ export default defineConfig({
   projects: [
     {
         name: 'setup',
-        testMatch: /.*\.setup\.ts/,
+        testMatch: 'auth.setup.ts',
     },
 
     {
@@ -89,3 +89,4 @@ export default defineConfig({
   //   reuseExistingServer: !process.env.CI,
   // },
 });
+

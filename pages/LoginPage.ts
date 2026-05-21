@@ -1,6 +1,6 @@
 import { Page, Locator } from '@playwright/test';
-
 import { BasePage } from './BasePage';
+import { ENV } from '../config/env';
 
 export class LoginPage extends BasePage {
 
@@ -20,8 +20,7 @@ export class LoginPage extends BasePage {
     }
 
     async navigateToLoginPage() {
-
-        await this.navigate('https://www.saucedemo.com');
+        await this.navigate(ENV.BASE_URL);
     }
 
     async login(username: string, password: string) {
