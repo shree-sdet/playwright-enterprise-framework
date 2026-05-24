@@ -5,8 +5,7 @@ test('Authenticated user should access inventory page', async ({
     inventoryPage
 }) => {
 
-    await page.goto('https://www.saucedemo.com/inventory.html');
-
+    await page.goto('/inventory.html'); 
     await inventoryPage.verifyInventoryPageLoaded();
 
     await expect(page).toHaveURL(/inventory/);
