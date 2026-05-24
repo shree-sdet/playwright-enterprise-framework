@@ -7,4 +7,6 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 .env
-auth/userAuth.json
+auth/*.json
+playwright/.auth/
+.DS_Store
