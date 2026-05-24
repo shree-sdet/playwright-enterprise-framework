@@ -2,6 +2,7 @@ import { test as base } from '@playwright/test';
 import { LoginPage } from '../pages/LoginPage';
 import { InventoryPage } from '../pages/InventoryPage';
 import { HeaderComponent } from '../components/HeaderComponent';
+import { PostsApiClient } from '../api-clients/PostsApiClient';
 
 
 type MyFixtures = {
@@ -9,6 +10,7 @@ type MyFixtures = {
     inventoryPage: InventoryPage;
     headerComponent: HeaderComponent;
     autoLogger: void;
+    postsApiClient: PostsApiClient;
 };
 
 type MyWorkerFixtures = {
@@ -51,6 +53,12 @@ export const test = base.extend<MyFixtures, MyWorkerFixtures>({
         console.log('Destroying InventoryPage Fixture');
     },
 
+
+    //postsApiClient Fixture to create an instance of PostsApiClient and use it in tests
+    postsApiClient: async ({ request }, use) => {
+        const postsApiClient = new PostsApiClient(request);
+        await use(postsApiClient);
+    }
 
 });
 
