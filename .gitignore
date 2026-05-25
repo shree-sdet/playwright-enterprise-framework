@@ -10,3 +10,4 @@ node_modules/
 auth/*.json
 playwright/.auth/
 .DS_Store
+trace.zip

@@ -3,18 +3,21 @@ import { LoginPage } from '../pages/LoginPage';
 import { InventoryPage } from '../pages/InventoryPage';
 import { HeaderComponent } from '../components/HeaderComponent';
 import { PostsApiClient } from '../api-clients/PostsApiClient';
+import { DatabaseClient } from '../db/databaseClient';
 
-
+// Define test fixtures with appropriate types
 type MyFixtures = {
     loginPage: LoginPage;
     inventoryPage: InventoryPage;
     headerComponent: HeaderComponent;
     autoLogger: void;
     postsApiClient: PostsApiClient;
+  
 };
-
+// Define worker-scoped fixtures in a separate type
 type MyWorkerFixtures = {
     workerLogger: string;
+    dbClient: DatabaseClient;
 };
 
 export const test = base.extend<MyFixtures, MyWorkerFixtures>({
@@ -53,13 +56,19 @@ export const test = base.extend<MyFixtures, MyWorkerFixtures>({
         console.log('Destroying InventoryPage Fixture');
     },
 
-
     //postsApiClient Fixture to create an instance of PostsApiClient and use it in tests
     postsApiClient: async ({ request }, use) => {
         const postsApiClient = new PostsApiClient(request);
         await use(postsApiClient);
-    }
+    },
 
+    //dbClient Fixture to create an instance of DatabaseClient and use it in tests
+    dbClient: [ async ({ }, use) => {
+        const dbClient = new DatabaseClient();
+        await dbClient.connect();
+        await use(dbClient);
+        await dbClient.disconnect();
+    }, { scope: 'worker' }]
 });
 
 export { expect } from '@playwright/test';
