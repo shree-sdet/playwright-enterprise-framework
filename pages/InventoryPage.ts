@@ -24,8 +24,12 @@ export class InventoryPage extends BasePage {
         return await this.page.locator('.inventory_item_name').first().textContent();
     }
 
-    async addBackpackToCart() {
-        await this.page.locator('.inventory_item:has-text("Sauce Labs Backpack") button').click();
+    // async addBackpackToCart() {
+    //     await this.page.locator('.inventory_item:has-text("Sauce Labs Backpack") button').click();
+    // }
+
+    async addProductToCart(productName: string) {
+        await this.page.locator(`.inventory_item:has-text("${productName}") button`).click();
     }
 
     async removeBackpackFromCart() {

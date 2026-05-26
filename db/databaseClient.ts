@@ -6,12 +6,11 @@ export class DatabaseClient {
 
     constructor() {
         this.client = new Client({
-            host: 'localhost',
-            port: 5432,
-            user: 'postgres',
+            host: process.env.DB_HOST,
+            port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
+            user: process.env.DB_USER,
             password: process.env.DB_PASSWORD,
-            database:
-                'playwright_framework_db'
+            database: process.env.DB_NAME,
         });
     }
 
@@ -45,5 +44,17 @@ export class DatabaseClient {
     async disconnect() {
         await this.client.end();
         console.log('Database Disconnected');
+    }
+
+    async beginTransaction() {
+        await this.client.query('BEGIN');
+    }
+
+    async commitTransaction() {
+        await this.client.query('COMMIT');
+    }
+
+    async rollbackTransaction() {
+        await this.client.query('ROLLBACK');
     }
 }

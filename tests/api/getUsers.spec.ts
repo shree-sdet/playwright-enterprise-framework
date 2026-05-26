@@ -1,7 +1,7 @@
-import { test, expect }from '@playwright/test';
+import { test, expect } from '@playwright/test';
 
-test('Get users API test', async ({request}) => {
-   const response = await request.get('https://jsonplaceholder.typicode.com/posts/1');
+test('Get users API test @api @smoke', async ({ request }) => {
+    const response = await request.get('https://jsonplaceholder.typicode.com/posts/1');
     expect(response.status()).toBe(200);
     const responseBody = await response.json();
     console.log(responseBody);
@@ -9,7 +9,7 @@ test('Get users API test', async ({request}) => {
     expect(responseBody.userId).toBe(1);
 });
 
-test('Create post API test', async ({request}) => {
+test('Create post API test', async ({ request }) => {
     const requestBody = {
         title: 'Playwright Learning',
         body: 'API Automation Testing',
@@ -23,13 +23,13 @@ test('Create post API test', async ({request}) => {
     );
 
     expect(response.status()).toBe(201);
-    const responseBody =await response.json();
+    const responseBody = await response.json();
     console.log(responseBody);
     expect(responseBody.title).toBe('Playwright Learning');
     expect(responseBody.userId).toBe(101);
 });
 
-test('Update post API test', async ({request}) => {
+test('Update post API test', async ({ request }) => {
 
     const updatedBody = {
         id: 1,
@@ -38,7 +38,7 @@ test('Update post API test', async ({request}) => {
         userId: 999
     };
 
-    const response = await request.put( 'https://jsonplaceholder.typicode.com/posts/1',
+    const response = await request.put('https://jsonplaceholder.typicode.com/posts/1',
         {
             data: updatedBody
         }
@@ -51,20 +51,18 @@ test('Update post API test', async ({request}) => {
     expect(responseBody.userId).toBe(999);
 });
 
-test('Delete post API test', async ({request}) => {
-
+test('Delete post API test', async ({ request }) => {
     const response = await request.delete('https://jsonplaceholder.typicode.com/posts/1');
     expect(response.status()).toBe(200);
     console.log('Post deleted successfully');
 });
 
-test('Authorization header API test', async ({request}) => {
-    const fakeToken ='sample-playwright-token';
+test('Authorization header API test', async ({ request }) => {
+    const fakeToken = 'sample-playwright-token';
     const response = await request.get('https://httpbin.org/bearer',
         {
             headers: {
-                Authorization:
-                    `Bearer ${fakeToken}`
+                Authorization: `Bearer ${fakeToken}`
             }
         }
     );

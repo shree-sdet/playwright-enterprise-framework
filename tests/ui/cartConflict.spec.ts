@@ -7,8 +7,9 @@ test('Add backpack to cart', async ({
 
 }) => {
 
-    await inventoryPage.addBackpackToCart();
-    await page.waitForTimeout(3000);
+    //await inventoryPage.addBackpackToCart();
+    await inventoryPage.addProductToCart('Sauce Labs Backpack');
+    //await page.waitForTimeout(3000);
     await expect(inventoryPage.cartBadge).toHaveText('1');
 });
 

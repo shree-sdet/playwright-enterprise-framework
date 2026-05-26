@@ -1,3 +1,4 @@
+import { envConfig } from '../../config/env';
 import { test, expect } from '../../fixtures/baseFixture';
 
 test('Authenticated user should access inventory page', async ({ 
@@ -5,8 +6,8 @@ test('Authenticated user should access inventory page', async ({
     inventoryPage
 }) => {
 
-    await page.goto('/inventory.html'); 
+    await page.goto(`${envConfig.baseURL}/inventory.html`);
     await inventoryPage.verifyInventoryPageLoaded();
-
     await expect(page).toHaveURL(/inventory/);
 });
+

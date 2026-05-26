@@ -1,11 +1,11 @@
-import { ENV } from '../../config/env';
+import { envConfig } from '../../config/env';
 import { test, expect } from '../../fixtures/baseFixture';
 import { getProduct } from '../../utils/testDataManager';
 
 // test.beforeEach(async ({ page }) => {
 //     // await page.goto('/inventory.html');
 //   //await page.goto('https://www.saucedemo.com/inventory.html');
-//   await page.goto(`${ENV.BASE_URL}/inventory.html`);
+//   await page.goto(`${envConfig.baseURL}/inventory.html`);
 //     console.log('Navigation completed');
 // });
 

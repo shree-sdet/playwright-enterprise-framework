@@ -11,3 +11,5 @@ auth/*.json
 playwright/.auth/
 .DS_Store
 trace.zip
+allure-results/
+allure-report/

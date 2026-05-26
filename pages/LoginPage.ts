@@ -1,6 +1,6 @@
 import { Page, Locator } from '@playwright/test';
 import { BasePage } from './BasePage';
-import { ENV } from '../config/env';
+import { envConfig } from '../config/env';
 
 export class LoginPage extends BasePage {
 
@@ -13,14 +13,12 @@ export class LoginPage extends BasePage {
         super(page);
 
         this.usernameInput = page.locator('#user-name');
-
         this.passwordInput = page.locator('#password');
-
         this.loginButton = page.locator('#login-button');
     }
 
     async navigateToLoginPage() {
-        await this.navigate(ENV.BASE_URL);
+        await this.navigate(envConfig.baseURL);
     }
 
     async login(username: string, password: string) {

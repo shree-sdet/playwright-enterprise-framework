@@ -10,6 +10,7 @@
   },
 
    "boltTshirt": {
-    "name": "Test.allTheThings() T-Shirt (Red)"
+    "name": "Test.allTheThings() T-Shirt (Red)",
+    "price": "$15.99"
   }
 }
