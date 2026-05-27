@@ -88,16 +88,45 @@ jobs:
           echo "## Hosted Allure Report" >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Send Slack Notification
-        if: always()
+      - name: Slack Success Notification
+        if: success()
         run: |
           curl -X POST \
-          -H 'Content-type: application/json' \
-          --data "{
-          \"text\": \"🚀 Playwright Pipeline Completed
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"✅ Playwright Pipeline PASSED
 
-           Hosted Report: ${{ steps.deployment.outputs.page_url }}
+              🌿 Branch:
+              ${{ github.ref_name }}
 
-           ✅ Check execution details in GitHub Actions.\"
-          }" \
-           ${{ secrets.SLACK_WEBHOOK_URL }}
+              👤 Triggered By:
+              ${{ github.actor }}
+
+              📊 Hosted Report:
+              ${{ steps.deployment.outputs.page_url }}
+
+              🚀 Workflow:
+              ${{ github.workflow }}\"
+             }" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Slack Failure Notification
+        if: failure()
+        run: |
+          curl -X POST \
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"❌ Playwright Pipeline FAILED
+
+              🌿 Branch:
+              ${{ github.ref_name }}
+
+              👤 Triggered By:
+              ${{ github.actor }}
+
+              📊 Hosted Report:
+              ${{ steps.deployment.outputs.page_url }}
+
+              ⚠️ Check GitHub Actions logs immediately.\"
+             }" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
