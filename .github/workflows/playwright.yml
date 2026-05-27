@@ -18,7 +18,16 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
-    environment: qa
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - chromium
+          - firefox
+          - webkit
+    environment: 
+       -qa
+       -stage
     env:
       USERNAME: ${{ secrets.QA_USERNAME }}
       PASSWORD: ${{ secrets.QA_PASSWORD }}
@@ -47,7 +56,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright Tests
-        run: npx playwright test
+        run: npx playwright test --project=${{ matrix.browser }}
 
       - name: Generate Allure Report
         if: always()
