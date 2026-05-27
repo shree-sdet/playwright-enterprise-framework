@@ -45,6 +45,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+          
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -74,6 +75,21 @@ jobs:
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
+
+      - name: Setup Database Schema
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d testdb -c "
+          CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100),
+            email VARCHAR(100)
+          );
+          "
+
+          PGPASSWORD=postgres psql -h localhost -U postgres -d testdb -c "
+          INSERT INTO users (name, email)
+          VALUES ('Shree', 'shree@test.com');
+          "
 
       - name: Run Playwright Tests
         run: npx playwright test --project=${{ matrix.browser }}
