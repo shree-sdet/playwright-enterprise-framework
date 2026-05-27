@@ -17,7 +17,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -66,9 +65,8 @@ jobs:
           path: allure-report/
 
   deploy:
-
     if: always()
-    
+
     needs: test
     runs-on: ubuntu-latest
 
@@ -88,4 +86,18 @@ jobs:
       - name: Add Report Link To Summary
         run: |
           echo "## Hosted Allure Report" >> $GITHUB_STEP_SUMMARY
-          echo "${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY  
+          echo "${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Send Slack Notification
+        if: always()
+        run: |
+          curl -X POST \
+          -H 'Content-type: application/json' \
+          --data "{
+          \"text\": \"🚀 Playwright Pipeline Completed
+
+           Hosted Report: ${{ steps.deployment.outputs.page_url }}
+
+           ✅ Check execution details in GitHub Actions.\"
+          }" \
+           ${{ secrets.SLACK_WEBHOOK_URL }}
