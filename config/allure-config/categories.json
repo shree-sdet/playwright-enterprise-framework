@@ -1,0 +1,37 @@
+[
+  {
+    "name": "Locator Issues",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*locator.*"
+  },
+
+  {
+    "name": "Timeout Issues",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*timeout.*"
+  },
+
+  {
+    "name": "Assertion Errors",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*expect.*"
+  },    
+  
+  {
+    "name": "API Failures",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*API.*"
+  },
+  
+  {
+    "name": "Authentication Failures",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*authentication.*"
+  },
+
+  {
+    "name": "Other Failures",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*"
+  }
+]

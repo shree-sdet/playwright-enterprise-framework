@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "description": "Enterprise-grade Playwright + TypeScript automation framework",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "clean:allure": "rm -rf allure-results allure-report",
+    "copy:allure-config": "cp config/allure/* allure-results/",
+    "test:allure": "npm run clean:allure && playwright test && npm run copy:allure-config && allure generate allure-results --clean"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
