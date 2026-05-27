@@ -31,6 +31,20 @@ jobs:
     env:
       USERNAME: ${{ secrets.QA_USERNAME }}
       PASSWORD: ${{ secrets.QA_PASSWORD }}
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -61,9 +75,11 @@ jobs:
       - name: Generate Allure Report
         if: always()
         run: |
-          npx allure generate \
-          --output allure-report \
-          allure-results
+          if [ -d "allure-results" ]; then
+            npx allure generate allure-results --output allure-report
+          else
+            echo "No allure-results found"
+          fi
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
