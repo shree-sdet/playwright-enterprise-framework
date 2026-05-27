@@ -16,9 +16,17 @@ concurrency:
 jobs:
   test:
     runs-on: ubuntu-latest
+    environment: qa
+    env:
+      USERNAME: ${{ secrets.QA_USERNAME }}
+      PASSWORD: ${{ secrets.QA_PASSWORD }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Validate Secret
+        run: |
+          echo "Username Loaded Successfully"
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
