@@ -99,6 +99,10 @@ export const test = base.extend<MyFixtures, MyWorkerFixtures>({
 
     //dbClient Fixture to create an instance of DatabaseClient and use it in tests
     dbClient: [async ({ }, use) => {
+        console.log("DB HOST:", process.env.POSTGRES_HOST);
+        console.log("DB USER:", process.env.POSTGRES_USER);
+        console.log("DB PASSWORD:", process.env.POSTGRES_PASSWORD);
+        console.log("DB NAME:", process.env.POSTGRES_DB);
         const dbClient = new DatabaseClient();
         await dbClient.connect();
         await use(dbClient);
