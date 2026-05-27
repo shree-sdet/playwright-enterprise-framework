@@ -94,11 +94,10 @@ jobs:
       - name: Run Playwright Tests
         run: npx playwright test --project=${{ matrix.browser }}
         env:
-          POSTGRES_HOST: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: testdb
+         DB_HOST: localhost
+         DB_USER: postgres
+         DB_PASSWORD: postgres
+         DB_NAME: testdb
 
       - name: Generate Allure Report
         if: always()
