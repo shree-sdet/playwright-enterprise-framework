@@ -116,14 +116,14 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: name: playwright-report-${{ matrix.shardIndex }}-${{ matrix.browser }}
+          name: playwright-report-${{ matrix.shardIndex }}-${{ matrix.browser }}
           path: playwright-report/
 
       - name: Upload Allure Report Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
-            name: name: allure-results-${{ matrix.shardIndex }}-${{ matrix.browser }}
+            name: allure-results-${{ matrix.shardIndex }}-${{ matrix.browser }}
             path: allure-results
 
       
