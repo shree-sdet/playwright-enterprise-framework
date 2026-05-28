@@ -1,0 +1,206 @@
+name: Playwright Tests
+
+run-name: >
+  Playwright CI/CD |
+  ${{ github.event_name }} |
+  ${{ github.actor }}
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '30 20 * * *'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - chromium
+          - firefox
+          - webkit
+    environment: 
+       -qa
+       -stage
+    env:
+      USERNAME: ${{ secrets.QA_USERNAME }}
+      PASSWORD: ${{ secrets.QA_PASSWORD }}
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Validate Secret
+        run: |
+          echo "Username Loaded Successfully"
+
+      - name: Print Trigger Type
+        run: |
+          echo "Triggered By:"
+          echo "${{ github.event_name }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Setup Database Schema
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -d testdb -c "
+          CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            name VARCHAR(100),
+            email VARCHAR(100)
+          );
+          "
+
+          PGPASSWORD=postgres psql -h localhost -U postgres -d testdb -c "
+          INSERT INTO users (name, email)
+          VALUES ('Shree', 'shree@test.com');
+          "
+
+      - name: Run Playwright Tests
+        run: npx playwright test --project=${{ matrix.browser }}
+        env:
+         DB_HOST: localhost
+         DB_USER: postgres
+         DB_PASSWORD: postgres
+         DB_NAME: testdb
+
+      - name: Generate Allure Report
+        if: always()
+        run: |
+          if [ -d "allure-results" ]; then
+            npx allure generate allure-results --output allure-report
+          else
+            echo "No allure-results found"
+          fi
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      - name: Upload Allure Report Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-report
+          path: allure-report/
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: allure-report/
+
+  deploy:
+    if: always()
+
+    needs: test
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Add Report Link To Summary
+        run: |
+          echo "## Hosted Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Slack Success Notification
+        if: needs.test.result == 'success'
+        run: |
+          curl -X POST \
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"✅ Playwright Pipeline PASSED
+
+              🌿 Branch:
+              ${{ github.ref_name }}
+
+              👤 Triggered By:
+              ${{ github.actor }}
+
+              📊 Hosted Report:
+              ${{ steps.deployment.outputs.page_url }}
+
+              🚀 Workflow:
+              ${{ github.workflow }}\"
+             }" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Slack Failure Notification
+        if: needs.test.result == 'failure'
+        run: |
+          curl -X POST \
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"❌ Playwright Pipeline FAILED
+
+              🌿 Branch:
+              ${{ github.ref_name }}
+
+              👤 Triggered By:
+              ${{ github.actor }}
+
+              📊 Hosted Report:
+              ${{ steps.deployment.outputs.page_url }}
+
+              ⚠️ Check GitHub Actions logs immediately.\"
+             }" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
