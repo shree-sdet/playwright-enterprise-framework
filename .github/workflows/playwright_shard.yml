@@ -190,7 +190,7 @@ jobs:
           path: allure-report
 
       - name: Slack Success Notification - Shard
-        if: always() && job.status == 'success'
+        if: needs.test.result == 'success'
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
@@ -199,7 +199,7 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Slack Failure Notification - Shard
-        if: always() && failure()
+        if: needs.test.result == 'failure'
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
