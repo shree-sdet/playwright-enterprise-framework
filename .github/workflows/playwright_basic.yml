@@ -159,7 +159,7 @@ jobs:
           echo "## Hosted Allure Report" >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Slack Success Notification
+      - name: Slack Success Notification - Basic 
         if: needs.test.result == 'success'
         run: |
           curl -X POST \
@@ -181,7 +181,7 @@ jobs:
              }" \
             ${{ secrets.SLACK_WEBHOOK_URL }}
 
-      - name: Slack Failure Notification
+      - name: Slack Failure Notification - Basic
         if: needs.test.result == 'failure'
         run: |
           curl -X POST \
