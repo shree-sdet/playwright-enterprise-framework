@@ -1,4 +1,4 @@
-name: Playwright Tests
+name: Playwright Shard Tests
 
 run-name: >
   Playwright CI/CD |
