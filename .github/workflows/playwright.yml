@@ -1,5 +1,10 @@
 name: Playwright Tests
 
+run-name: >
+  Playwright CI/CD |
+  ${{ github.event_name }} |
+  ${{ github.actor }}
+
 on:
   push:
     branches: [main]
@@ -189,11 +194,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
-           { "text": "✅ Playwright Pipeline PASSED 
-            🌿 Branch: ${{ github.ref_name }} 
-            👤 Triggered By: ${{ github.actor }} 
-            📊 Hosted Report: https://shree-sdet.github.io/playwright-enterprise-framework/ 
-            🚀 Workflow: ${{ github.workflow }}" }
+           { "text": "✅ Playwright Pipeline PASSED \n🌿 Branch: ${{ github.ref_name }} \n👤 Triggered By: ${{ github.actor }} \n📊 Hosted Report: https://shree-sdet.github.io/playwright-enterprise-framework/ \n🚀 Workflow: ${{ github.workflow }}" }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
@@ -202,13 +203,7 @@ jobs:
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
-            {
-              "text": "❌ Playwright Pipeline FAILED 
-              🌿 Branch: ${{ github.ref_name }} 
-              👤 Triggered By: ${{ github.actor }} 
-              📊 Hosted Report: https://shree-sdet.github.io/playwright-enterprise-framework/ 
-              🚀 Workflow: ${{ github.workflow }}"
-            }
+            { "text": "❌ Playwright Pipeline FAILED \n🌿 Branch: ${{ github.ref_name }} \n👤 Triggered By: ${{ github.actor }} \n📊 Hosted Report: https://shree-sdet.github.io/playwright-enterprise-framework/ \n🚀 Workflow: ${{ github.workflow }}" }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}    
 
