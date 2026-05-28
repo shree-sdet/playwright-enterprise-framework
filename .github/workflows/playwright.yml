@@ -161,6 +161,12 @@ jobs:
       - name: Install Allure
         run: npm install -g allure-commandline
 
+      - name: Copy Allure Config Files
+        run: |
+          cp config/allure-config/environment.properties allure-results/ || true
+          cp config/allure-config/categories.json allure-results/ || true
+          cp config/allure-config/executor.json allure-results/ || true
+
       - name: Generate Merged Allure Report
         run: |
           allure generate allure-results --clean -o allure-report
@@ -177,6 +183,34 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: allure-report
+
+      - name: Slack Success Notification
+        if: always() && needs.test.result == 'success'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+           { "text": "✅ Playwright Pipeline PASSED 
+            🌿 Branch: ${{ github.ref_name }} 
+            👤 Triggered By: ${{ github.actor }} 
+            📊 Hosted Report: https://shree-sdet.github.io/playwright-enterprise-framework/ 
+            🚀 Workflow: ${{ github.workflow }}" }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Slack Failure Notification
+        if: always() && needs.test.result == 'failure'
+        uses: slackapi/slack-github-action@v1.24.0
+        with:
+          payload: |
+            {
+              "text": "❌ Playwright Pipeline FAILED 
+              🌿 Branch: ${{ github.ref_name }} 
+              👤 Triggered By: ${{ github.actor }} 
+              📊 Hosted Report: https://shree-sdet.github.io/playwright-enterprise-framework/ 
+              🚀 Workflow: ${{ github.workflow }}"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}    
 
   deploy:
     if: always()
@@ -202,45 +236,4 @@ jobs:
           echo "## Hosted Allure Report" >> $GITHUB_STEP_SUMMARY
           echo "${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Slack Success Notification
-        if: success()
-        run: |
-          curl -X POST \
-            -H 'Content-type: application/json' \
-            --data "{
-              \"text\": \"✅ Playwright Pipeline PASSED
-
-              🌿 Branch:
-              ${{ github.ref_name }}
-
-              👤 Triggered By:
-              ${{ github.actor }}
-
-              📊 Hosted Report:
-              ${{ steps.deployment.outputs.page_url }}
-
-              🚀 Workflow:
-              ${{ github.workflow }}\"
-             }" \
-            ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Slack Failure Notification
-        if: failure()
-        run: |
-          curl -X POST \
-            -H 'Content-type: application/json' \
-            --data "{
-              \"text\": \"❌ Playwright Pipeline FAILED
-
-              🌿 Branch:
-              ${{ github.ref_name }}
-
-              👤 Triggered By:
-              ${{ github.actor }}
-
-              📊 Hosted Report:
-              ${{ steps.deployment.outputs.page_url }}
-
-              ⚠️ Check GitHub Actions logs immediately.\"
-             }" \
-            ${{ secrets.SLACK_WEBHOOK_URL }}
+      
