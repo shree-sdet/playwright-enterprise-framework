@@ -27,9 +27,6 @@ jobs:
           - chromium
           - firefox
           - webkit
-    environment: 
-       -qa
-       -stage
     env:
       USERNAME: ${{ secrets.QA_USERNAME }}
       PASSWORD: ${{ secrets.QA_PASSWORD }}
@@ -144,8 +141,11 @@ jobs:
        
       - name: Merge Allure Results
         run: |
-          mkdir allure-results
-          find merged-allure-results -type f -exec cp {} allure-results/ \;
+          mkdir -p allure-results
+          find merged-allure-results -name "*.json" -exec cp {} allure-results/ \;
+          find merged-allure-results -name "*.txt" -exec cp {} allure-results/ \;
+          find merged-allure-results -name "*.png" -exec cp {} allure-results/ \;
+          find merged-allure-results -name "*.webm" -exec cp {} allure-results/ \;
       
       - name: Generate Allure Report
         run: |
