@@ -1,7 +1,7 @@
 name: Playwright Shard Tests
 
 run-name: >
-  Playwright CI/CD |
+  Playwright Shard CI/CD |
   ${{ github.event_name }} |
   ${{ github.actor }}
 
