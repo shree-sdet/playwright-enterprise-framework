@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         shardIndex: [1, 2, 3]
-        shardTotal: [3]
+        shardTotal: [2]
         browser:
           - chromium
           - firefox
@@ -126,14 +126,7 @@ jobs:
             name: allure-results-${{ matrix.shardIndex }}
             path: allure-results
 
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload GitHub Pages Artifact
-        uses: actions/upload-pages-artifact@v3
-        if: always()
-        with:
-          path: allure-report/
+      
 
   merge-reports:
     needs: test
@@ -162,7 +155,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: final-allure-report
-          path: allure-report    
+          path: allure-report  
+           
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: allure-report/     
 
   deploy:
     if: always()
