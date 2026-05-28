@@ -191,21 +191,43 @@ jobs:
 
       - name: Slack Success Notification - Shard
         if: needs.test.result == 'success'
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          payload: |
-           { "text": "✅ Playwright Pipeline PASSED \n🌿 Branch: ${{ github.ref_name }} \n👤 Triggered By: ${{ github.actor }} \n📊 Hosted Report: https://shree-sdet.github.io/playwright-enterprise-framework/ \n🚀 Workflow: ${{ github.workflow }}" }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+         curl -X POST \
+          -H 'Content-type: application/json' \
+         --data "{
+         \"text\": \"✅ Playwright Pipeline PASSED
+
+         🌿 Branch:
+          ${{ github.ref_name }}
+
+         👤 Triggered By:
+         ${{ github.actor }}
+
+         📊 Hosted Report:
+         https://shree-sdet.github.io/playwright-enterprise-framework/
+
+         🚀 Workflow:
+         ${{ github.workflow }}\" }" \ ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Slack Failure Notification - Shard
         if: needs.test.result == 'failure'
-        uses: slackapi/slack-github-action@v1.24.0
-        with:
-          payload: |
-            { "text": "❌ Playwright Pipeline FAILED \n🌿 Branch: ${{ github.ref_name }} \n👤 Triggered By: ${{ github.actor }} \n📊 Hosted Report: https://shree-sdet.github.io/playwright-enterprise-framework/ \n🚀 Workflow: ${{ github.workflow }}" }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}    
+        run: |
+         curl -X POST \
+          -H 'Content-type: application/json' \
+           --data "{
+            \"text\": \"❌ Playwright Pipeline FAILED
+
+         🌿 Branch:
+         ${{ github.ref_name }}
+
+         👤 Triggered By:
+         ${{ github.actor }}
+
+         📊 Hosted Report:
+         https://shree-sdet.github.io/playwright-enterprise-framework/
+
+         🚀 Workflow:
+         ${{ github.workflow }}\" }" \  ${{ secrets.SLACK_WEBHOOK_URL }}  
 
   deploy:
     if: always()
