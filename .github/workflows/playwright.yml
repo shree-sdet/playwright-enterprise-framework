@@ -126,45 +126,57 @@ jobs:
       
 
   merge-reports:
+    if: always()
+
     needs: test
 
     runs-on: ubuntu-latest
-    if: always()
+
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Download Allure Results
         uses: actions/download-artifact@v4
         with:
+          pattern: allure-results-*
           path: merged-allure-results
-       
-      - name: Merge Allure Results
+          merge-multiple: true
+
+      - name: Verify Downloaded Artifacts
+        run: |
+          echo "==== DOWNLOADED FILES ===="
+          find merged-allure-results
+
+      - name: Prepare Allure Results
         run: |
           mkdir -p allure-results
-          find merged-allure-results -name "*.json" -exec cp {} allure-results/ \;
-          find merged-allure-results -name "*.txt" -exec cp {} allure-results/ \;
-          find merged-allure-results -name "*.png" -exec cp {} allure-results/ \;
-          find merged-allure-results -name "*.webm" -exec cp {} allure-results/ \;
-      
-      - name: Generate Allure Report
+
+          cp -r merged-allure-results/* allure-results/ || true
+
+          echo "==== FINAL ALLURE RESULTS ===="
+          find allure-results
+
+      - name: Install Allure
+        run: npm install -g allure-commandline
+
+      - name: Generate Merged Allure Report
         run: |
-          npx allure generate allure-results --clean -o allure-report   
-      
-      - name: Upload Final Allure Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: final-allure-report
-          path: allure-report  
+          allure generate allure-results --clean -o allure-report
+
+      - name: Verify Allure Report
+        run: |
+          echo "==== ALLURE REPORT FILES ===="
+          find allure-report
 
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Upload GitHub Pages Artifact
         uses: actions/upload-pages-artifact@v3
-        if: always()
         with:
-          path: allure-report/     
+          path: allure-report
 
   deploy:
     if: always()
