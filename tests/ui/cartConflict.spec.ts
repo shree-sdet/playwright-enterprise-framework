@@ -1,10 +1,8 @@
 import { test, expect } from '../../fixtures/baseFixture';
 
 test('Add backpack to cart', async ({
-
     inventoryPage,
     page
-
 }) => {
 
     //await inventoryPage.addBackpackToCart();
@@ -18,7 +16,6 @@ test('Cart should initially be empty', async ({
     inventoryPage,
     page
 }) => {
-
-    await page.waitForTimeout(1000);
+    //await page.waitForTimeout(1000);
     await expect(inventoryPage.cartBadge).not.toBeVisible();
 });

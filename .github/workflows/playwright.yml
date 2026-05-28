@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         shardIndex: [1, 2, 3]
-        shardTotal: [2]
+        shardTotal: [3]
         browser:
           - chromium
           - firefox
@@ -116,14 +116,14 @@ jobs:
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
+          name: name: playwright-report-${{ matrix.shardIndex }}-${{ matrix.browser }}
           path: playwright-report/
 
       - name: Upload Allure Report Artifact
         uses: actions/upload-artifact@v4
         if: always()
         with:
-            name: allure-results-${{ matrix.shardIndex }}
+            name: name: allure-results-${{ matrix.shardIndex }}-${{ matrix.browser }}
             path: allure-results
 
       
@@ -156,7 +156,7 @@ jobs:
         with:
           name: final-allure-report
           path: allure-report  
-           
+
       - name: Setup GitHub Pages
         uses: actions/configure-pages@v5
 
@@ -169,7 +169,7 @@ jobs:
   deploy:
     if: always()
 
-    needs: test
+    needs: merge-reports
     runs-on: ubuntu-latest
 
     environment:
@@ -191,7 +191,7 @@ jobs:
           echo "${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
 
       - name: Slack Success Notification
-        if: needs.test.result == 'success'
+        if: success()
         run: |
           curl -X POST \
             -H 'Content-type: application/json' \
@@ -213,7 +213,7 @@ jobs:
             ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Slack Failure Notification
-        if: needs.test.result == 'failure'
+        if: failure()
         run: |
           curl -X POST \
             -H 'Content-type: application/json' \

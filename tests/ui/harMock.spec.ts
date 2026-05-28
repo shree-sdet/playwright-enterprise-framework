@@ -14,7 +14,6 @@ test('HAR recording example', async ({page}) => {
 });
 
 test('HAR replay example', async ({ page}) => {
-
     await page.context().routeFromHAR('mocks/saucedemo.har');
     await page.goto('/');
     await expect(page).toHaveTitle(/Swag Labs/);
