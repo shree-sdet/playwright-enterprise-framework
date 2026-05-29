@@ -63,3 +63,37 @@ jobs:
           echo "- Triggered By: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- Status: Completed" >> $GITHUB_STEP_SUMMARY
+
+      - name: Slack Success Notification
+        if: success()
+        run: |
+          curl -X POST \
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"✅ Visual Regression Tests PASSED
+
+              Repository: ${{ github.repository }}
+              Branch: ${{ github.ref_name }}
+              Triggered By: ${{ github.actor }}
+              Workflow: ${{ github.workflow }}
+              Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
+            }" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Slack Failure Notification
+        if: failure()
+        run: |
+          curl -X POST \
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"❌ Visual Regression Tests FAILED
+
+              Repository: ${{ github.repository }}
+              Branch: ${{ github.ref_name }}
+              Triggered By: ${{ github.actor }}
+              Workflow: ${{ github.workflow }}
+              Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+              Check the GitHub Actions logs and uploaded visual artifacts.\"
+            }" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
