@@ -82,6 +82,14 @@ export default defineConfig({
       use: {
         ...devices['iPhone 15']
       }
+    },
+    // Additional project for visual testing with Chromium, using a consistent viewport size and settings optimized for visual validation.
+    {
+      name: 'visual-chromium',
+      use: {
+        ...devices['Desktop Chrome']
+      },
+      grep: /@visual/
     }
 
     /* Test against branded browsers. */
