@@ -6,6 +6,8 @@ export class InventoryPage extends BasePage {
     readonly inventoryTitle: Locator;
     readonly removeBackpackButton: Locator;
     readonly cartBadge: Locator;
+    readonly menuButton: Locator;
+    readonly logoutLink: Locator;
 
     constructor(page: Page) {
 
@@ -13,6 +15,8 @@ export class InventoryPage extends BasePage {
         this.inventoryTitle = page.locator('.title');
         this.removeBackpackButton = page.locator('#remove-sauce-labs-backpack');
         this.cartBadge = page.locator('.shopping_cart_badge');
+        this.menuButton = page.locator('#react-burger-menu-btn');
+        this.logoutLink = page.locator('#logout_sidebar_link');
 
     }
 
@@ -43,4 +47,6 @@ export class InventoryPage extends BasePage {
     async getInventoryItemByName(productName: string) {
         return this.page.locator('.inventory_item_name', { hasText: productName });
     }
+
+  
 }
