@@ -6,6 +6,7 @@ run-name: >
   ${{ github.actor }}
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
   schedule:
