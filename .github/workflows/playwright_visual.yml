@@ -40,62 +40,88 @@ jobs:
           name: visual-playwright-report
           path: playwright-report/
 
-deploy:
- needs: visual-tests
- runs-on: ubuntu-latest
- if: always()
+      - name: Upload Allure Report Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: allure-report
+          path: allure-report/
 
- steps:
-  - name: Deployment Summary
-    run: |
-     echo "## Visual Regression Test Summary" >> $GITHUB_STEP_SUMMARY
-     echo "" >> $GITHUB_STEP_SUMMARY
-     echo "- Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
-     echo "- Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
-     echo "- Triggered By: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
-     echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-     echo "- Status: Completed" >> $GITHUB_STEP_SUMMARY
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
 
-slack-notification:
-   needs: visual-tests
-   runs-on: ubuntu-latest
-   if: always()
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        if: always()
+        with:
+          path: allure-report/
+           
 
-   steps:
-   - name: Slack Notification
-     uses: slackapi/slack-github-action@v1.27.0
-     with:
-     payload: |
-        {
-         "text": "Visual Regression Workflow Completed",
-         "attachments": [
-         {
-         "color": "${{ needs.visual-tests.result == 'success' && 'good' || 'danger' }}",
-         "fields": [
-         {
-         "title": "Repository",
-         "value": "${{ github.repository }}",
-        "short": true
-        },
-        {
-        "title": "Branch",
-        "value": "${{ github.ref_name }}",
-        "short": true
-        },
-        {
-         "title": "Status",
-        "value": "${{ needs.visual-tests.result }}",
-         "short": true
-        },
-        {
-         "title": "Triggered By",
-          "value": "${{ github.actor }}",
-         "short": true
-        }
-        ]
-          }
-        ]
-          }
-env:
-SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-    
+  deploy:
+    if: always()
+
+    needs: 
+      - visual-tests
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Add Report Link To Summary
+        run: |
+          echo "## Hosted Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Slack Success Notification - Basic 
+        if: needs.visual-tests.result == 'success'
+        run: |
+          curl -X POST \
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"✅ Playwright Pipeline PASSED
+
+              🌿 Branch:
+              ${{ github.ref_name }}
+
+              👤 Triggered By:
+              ${{ github.actor }}
+
+              📊 Hosted Report:
+              ${{ steps.deployment.outputs.page_url }}
+
+              🚀 Workflow:
+              ${{ github.workflow }}\"
+             }" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Slack Failure Notification - Basic
+        if: needs.visual-tests.result == 'failure'
+        run: |
+          curl -X POST \
+            -H 'Content-type: application/json' \
+            --data "{
+              \"text\": \"❌ Playwright Pipeline FAILED
+
+              🌿 Branch:
+              ${{ github.ref_name }}
+
+              👤 Triggered By:
+              ${{ github.actor }}
+
+              📊 Hosted Report:
+              ${{ steps.deployment.outputs.page_url }}
+
+              ⚠️ Check GitHub Actions logs immediately.\"
+             }" \
+            ${{ secrets.SLACK_WEBHOOK_URL }}
+
