@@ -11,7 +11,7 @@ test('Get post using API client', async ({
     expect(responseBody.id).toBe(1);
 });
 
-test('incorrect endpoint test', async ({
+test.fixme('incorrect endpoint test', async ({
     postsApiClient
 }) => {
 

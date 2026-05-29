@@ -23,7 +23,7 @@ test('Get users API test @api @smoke', async ({ request }) => {
 });
 
 //intentional failure test to validate screenshot attachment in allure report
-test('incorrect product to cart', async ({
+test.fail('incorrect product to cart', async ({
     inventoryPage,
 }) => {
     await allure.severity('critical');
