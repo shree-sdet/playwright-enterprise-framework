@@ -17,6 +17,7 @@ jobs:
 
     env:
       ENV: qa
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
       - name: Checkout Repository
@@ -65,35 +66,17 @@ jobs:
           echo "- Status: Completed" >> $GITHUB_STEP_SUMMARY
 
       - name: Slack Success Notification
-        if: success()
+        if: success() && env.SLACK_WEBHOOK_URL != ''
         run: |
           curl -X POST \
             -H 'Content-type: application/json' \
-            --data "{
-              \"text\": \"✅ Visual Regression Tests PASSED
-
-              Repository: ${{ github.repository }}
-              Branch: ${{ github.ref_name }}
-              Triggered By: ${{ github.actor }}
-              Workflow: ${{ github.workflow }}
-              Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\"
-            }" \
-            ${{ secrets.SLACK_WEBHOOK_URL }}
+            --data '{"text":"Visual Regression Tests PASSED\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nTriggered By: ${{ github.actor }}\nWorkflow: ${{ github.workflow }}\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' \
+            "$SLACK_WEBHOOK_URL"
 
       - name: Slack Failure Notification
-        if: failure()
+        if: failure() && env.SLACK_WEBHOOK_URL != ''
         run: |
           curl -X POST \
             -H 'Content-type: application/json' \
-            --data "{
-              \"text\": \"❌ Visual Regression Tests FAILED
-
-              Repository: ${{ github.repository }}
-              Branch: ${{ github.ref_name }}
-              Triggered By: ${{ github.actor }}
-              Workflow: ${{ github.workflow }}
-              Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-
-              Check the GitHub Actions logs and uploaded visual artifacts.\"
-            }" \
-            ${{ secrets.SLACK_WEBHOOK_URL }}
+            --data '{"text":"Visual Regression Tests FAILED\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nTriggered By: ${{ github.actor }}\nWorkflow: ${{ github.workflow }}\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nCheck the GitHub Actions logs and uploaded visual artifacts."}' \
+            "$SLACK_WEBHOOK_URL"
