@@ -28,11 +28,9 @@ jobs:
       fail-fast: false
       matrix:
         browser:
-          - chromium
-    environment: 
-       -qa
-       -stage
+          - chromium 
     env:
+      ENVIORNMENT: qa
       USERNAME: ${{ secrets.QA_USERNAME }}
       PASSWORD: ${{ secrets.QA_PASSWORD }}
     services:
