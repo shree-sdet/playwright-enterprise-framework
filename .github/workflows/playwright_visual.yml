@@ -38,6 +38,17 @@ jobs:
       - name: Run Visual Tests
         run: npx playwright test --project=visual-chromium --update-snapshots
 
+      - name: Prepare Allure Results
+        if: always()
+        run: |
+          mkdir -p allure-results
+          cp config/allure-config/environment.properties allure-results/ || true
+          cp config/allure-config/categories.json allure-results/ || true
+
+      - name: Generate Allure Report
+        if: always()
+        run: npx --yes allure-commandline generate allure-results --clean -o allure-report
+
       - name: Upload Playwright Report
         if: always()
         uses: actions/upload-artifact@v4
@@ -54,6 +65,14 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
 
+      - name: Upload Allure Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-allure-report
+          path: allure-report/
+          if-no-files-found: ignore
+
       - name: Visual Test Summary
         if: always()
         run: |
@@ -63,6 +82,7 @@ jobs:
           echo "- Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
           echo "- Triggered By: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Allure Report Artifact: visual-allure-report" >> $GITHUB_STEP_SUMMARY
           echo "- Status: Completed" >> $GITHUB_STEP_SUMMARY
 
       - name: Slack Success Notification
