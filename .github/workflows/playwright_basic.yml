@@ -139,7 +139,6 @@ jobs:
 
     needs: 
       - test
-      - visual-tests
     runs-on: ubuntu-latest
 
     environment:
