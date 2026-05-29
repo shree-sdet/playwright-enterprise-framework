@@ -39,3 +39,63 @@ jobs:
         with:
           name: visual-playwright-report
           path: playwright-report/
+
+deploy:
+ needs: visual-tests
+ runs-on: ubuntu-latest
+ if: always()
+
+ steps:
+  - name: Deployment Summary
+    run: |
+     echo "## Visual Regression Test Summary" >> $GITHUB_STEP_SUMMARY
+     echo "" >> $GITHUB_STEP_SUMMARY
+     echo "- Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+     echo "- Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+     echo "- Triggered By: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+     echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+     echo "- Status: Completed" >> $GITHUB_STEP_SUMMARY
+
+slack-notification:
+   needs: visual-tests
+   runs-on: ubuntu-latest
+   if: always()
+
+   steps:
+   - name: Slack Notification
+     uses: slackapi/slack-github-action@v1.27.0
+     with:
+     payload: |
+        {
+         "text": "Visual Regression Workflow Completed",
+         "attachments": [
+         {
+         "color": "${{ needs.visual-tests.result == 'success' && 'good' || 'danger' }}",
+         "fields": [
+         {
+         "title": "Repository",
+         "value": "${{ github.repository }}",
+        "short": true
+        },
+        {
+        "title": "Branch",
+        "value": "${{ github.ref_name }}",
+        "short": true
+        },
+        {
+         "title": "Status",
+        "value": "${{ needs.visual-tests.result }}",
+         "short": true
+        },
+        {
+         "title": "Triggered By",
+          "value": "${{ github.actor }}",
+         "short": true
+        }
+        ]
+          }
+        ]
+          }
+env:
+SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    
