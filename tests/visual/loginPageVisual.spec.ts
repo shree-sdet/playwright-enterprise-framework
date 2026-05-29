@@ -2,7 +2,7 @@ import { test, expect } from '../../fixtures/baseFixture';
 import * as allure from 'allure-js-commons';
 import { getLoginUser } from '../../utils/testDataManager';
 
-test('Login page visual validation', async ({ page }) => {
+test('Login page visual validation @visual', async ({ page }) => {
   await page.goto('/');
 
   //await page.evaluate(() => {document.body.style.zoom = '110%'});
@@ -12,12 +12,12 @@ test('Login page visual validation', async ({ page }) => {
 
 });
 
-test('Login logo visual validation', async ({ page }) => {
+test('Login logo visual validation @visual', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.login_logo')).toHaveScreenshot('login-logo.png');
 });
 
-test('Inventory page visual validation', async ({loginPage, page}) => {
+test('Inventory page visual validation @visual', async ({loginPage, page}) => {
 
   const user = getLoginUser('validUser');
   await loginPage.navigateToLoginPage();
