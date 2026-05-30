@@ -66,6 +66,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload Allure Report
+        id: upload-allure-report
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -82,7 +83,7 @@ jobs:
           echo "- Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
           echo "- Triggered By: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Allure Report Artifact: visual-allure-report" >> $GITHUB_STEP_SUMMARY
+          echo "- Allure Report: [visual-allure-report](${{ steps.upload-allure-report.outputs.artifact-url }})" >> $GITHUB_STEP_SUMMARY
           echo "- Status: Completed" >> $GITHUB_STEP_SUMMARY
 
       - name: Slack Success Notification
