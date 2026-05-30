@@ -46,6 +46,14 @@ jobs:
       - name: Run Visual Tests
         run: npx playwright test --project=visual-chromium --update-snapshots --reporter=html
 
+      - name: Commit Linux Snapshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tests/visual/*.spec.ts-snapshots/
+          git diff --staged --quiet || git commit -m "chore: add linux visual snapshots"
+          git push  
+
       - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
