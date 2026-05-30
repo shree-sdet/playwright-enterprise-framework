@@ -3,13 +3,13 @@ import * as allure from 'allure-js-commons';
 import { getLoginUser } from '../../utils/testDataManager';
 
 test('Login page visual validation @visual', async ({ page }) => {
-    await page.goto('/');
-
-    //await page.evaluate(() => {document.body.style.zoom = '110%'});
-    await expect(page).toHaveScreenshot('login-page.png');
-    const screenshot = await page.screenshot();
-    await allure.attachment('Login Page', screenshot, 'image/png');
-
+  await page.goto('/');
+  await expect(page).toHaveScreenshot('login-page.png', {
+    maxDiffPixelRatio: 0.02,
+    threshold: 0.3
+  });
+  const screenshot = await page.screenshot();
+  await allure.attachment('Login Page', screenshot, 'image/png');
 });
 
 test('Login logo visual validation @visual', async ({ page }) => {
@@ -28,11 +28,5 @@ test('Inventory page visual validation @visual', async ({ loginPage, page }) => 
                 page.locator('.shopping_cart_badge')
             ]
         });
-
-    // allow small pixel differences between OS renders
-    await expect(page).toHaveScreenshot('login-page.png', {
-        maxDiffPixelRatio: 0.02, // allow 2% pixel difference
-        threshold: 0.3           // color difference threshold
-    });
 
 });
