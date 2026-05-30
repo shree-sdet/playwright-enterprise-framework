@@ -10,6 +10,12 @@ on:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
   visual-tests:
@@ -65,14 +71,15 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
 
-      - name: Upload Allure Report
-        id: upload-allure-report
+      - name: Setup GitHub Pages
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/configure-pages@v5
+
+      - name: Upload Allure Report To GitHub Pages
+        if: always()
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: visual-allure-report
           path: allure-report/
-          if-no-files-found: ignore
 
       - name: Visual Test Summary
         if: always()
@@ -83,7 +90,6 @@ jobs:
           echo "- Workflow: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
           echo "- Triggered By: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
           echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Allure Report: [visual-allure-report](${{ steps.upload-allure-report.outputs.artifact-url }})" >> $GITHUB_STEP_SUMMARY
           echo "- Status: Completed" >> $GITHUB_STEP_SUMMARY
 
       - name: Slack Success Notification
@@ -101,3 +107,27 @@ jobs:
             -H 'Content-type: application/json' \
             --data '{"text":"Visual Regression Tests FAILED\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nTriggered By: ${{ github.actor }}\nWorkflow: ${{ github.workflow }}\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nCheck the GitHub Actions logs and uploaded visual artifacts."}' \
             "$SLACK_WEBHOOK_URL"
+
+  deploy-allure-report:
+    if: always()
+    needs:
+      - visual-tests
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy Allure Report To GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Add Allure Report URL To Summary
+        if: always()
+        run: |
+          echo "## Hosted Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Allure Report URL: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "[Open Allure Report](${{ steps.deployment.outputs.page_url }})" >> $GITHUB_STEP_SUMMARY
