@@ -23,6 +23,8 @@ jobs:
 
     env:
       ENV: qa
+      PLAYWRIGHT_HTML_OPEN: never
+      PLAYWRIGHT_HTML_REPORT: playwright-report
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
     steps:
@@ -42,26 +44,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Visual Tests
-        run: npx playwright test --project=visual-chromium --update-snapshots
-
-      - name: Prepare Allure Results
-        if: always()
-        run: |
-          mkdir -p allure-results
-          cp config/allure-config/environment.properties allure-results/ || true
-          cp config/allure-config/categories.json allure-results/ || true
-
-      - name: Generate Allure Report
-        if: always()
-        run: npx --yes allure-commandline generate allure-results --clean -o allure-report
-
-      - name: Upload Playwright Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: visual-playwright-report
-          path: playwright-report/
-          if-no-files-found: ignore
+        run: npx playwright test --project=visual-chromium --update-snapshots --reporter=html
 
       - name: Upload Test Results
         if: always()
@@ -75,11 +58,11 @@ jobs:
         if: always()
         uses: actions/configure-pages@v5
 
-      - name: Upload Allure Report To GitHub Pages
+      - name: Upload HTML Report To GitHub Pages
         if: always()
         uses: actions/upload-pages-artifact@v3
         with:
-          path: allure-report/
+          path: playwright-report/
 
       - name: Visual Test Summary
         if: always()
@@ -108,7 +91,7 @@ jobs:
             --data '{"text":"Visual Regression Tests FAILED\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nTriggered By: ${{ github.actor }}\nWorkflow: ${{ github.workflow }}\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nCheck the GitHub Actions logs and uploaded visual artifacts."}' \
             "$SLACK_WEBHOOK_URL"
 
-  deploy-allure-report:
+  deploy-html-report:
     if: always()
     needs:
       - visual-tests
@@ -119,15 +102,15 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Deploy Allure Report To GitHub Pages
+      - name: Deploy HTML Report To GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: Add Allure Report URL To Summary
+      - name: Add HTML Report URL To Summary
         if: always()
         run: |
-          echo "## Hosted Allure Report" >> $GITHUB_STEP_SUMMARY
+          echo "## Hosted HTML Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- Allure Report URL: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- HTML Report URL: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "[Open Allure Report](${{ steps.deployment.outputs.page_url }})" >> $GITHUB_STEP_SUMMARY
+          echo "[Open HTML Report](${{ steps.deployment.outputs.page_url }})" >> $GITHUB_STEP_SUMMARY
