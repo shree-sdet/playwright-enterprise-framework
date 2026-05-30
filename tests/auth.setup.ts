@@ -4,11 +4,10 @@ const authFile = 'auth/userAuth.json';
 
 setup('Authenticate User', async ({ page }) => {
 
-    await page.goto('https://www.saucedemo.com');
+    await page.goto('/');
 
-    await page.locator('#user-name').fill('standard_user');
-
-    await page.locator('#password').fill('secret_sauce');
+    await page.locator('#user-name').fill(process.env.USERNAME || '');
+    await page.locator('#password').fill(process.env.PASSWORD || '');
 
     await page.locator('#login-button').click();
 
