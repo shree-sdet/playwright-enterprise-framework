@@ -4,6 +4,12 @@
   "description": "Enterprise-grade Playwright + TypeScript automation framework",
   "main": "index.js",
   "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test tests/ui",
+    "test:api": "playwright test tests/api",
+    "test:a11y": "playwright test tests/accessibility",
+    "test:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'",
+    "test:visual": "playwright test --project=visual-chromium",
     "clean:allure": "rm -rf allure-results allure-report",
     "copy:allure-config": "cp config/allure/* allure-results/",
     "test:allure": "npm run clean:allure && playwright test && npm run copy:allure-config && allure generate allure-results --clean"

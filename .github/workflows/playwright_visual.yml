@@ -44,7 +44,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Visual Tests
-        run: npx playwright test --project=visual-chromium --update-snapshots --reporter=html
+        run: npx playwright test --project=visual-chromium --reporter=html
 
       - name: Upload Test Results
         if: always()
