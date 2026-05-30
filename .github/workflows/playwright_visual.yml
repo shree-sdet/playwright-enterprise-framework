@@ -113,4 +113,3 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- HTML Report URL: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "[Open HTML Report](${{ steps.deployment.outputs.page_url }})" >> $GITHUB_STEP_SUMMARY
