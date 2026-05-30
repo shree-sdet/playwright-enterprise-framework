@@ -23,7 +23,9 @@ test('Mock API response example', async ({page}) => {
                 mocked: true
             })
         });
-    }
-);
+    });
+   await page.goto('/');
+   await expect(page).toHaveURL(/inventory/);
 });
+
 

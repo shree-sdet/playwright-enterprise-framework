@@ -1,796 +1,429 @@
 # Playwright Enterprise Framework
 
-## Overview
-
-This repository contains an enterprise-grade Playwright automation framework built using:
-
-* Playwright
-* TypeScript
-* API Automation
-* PostgreSQL Database Validation
-* Fixtures Architecture
-* Mocking & HAR Replay
-* Dynamic Test Data
-* Multi-Browser Execution
-* Environment-Based Configuration
-
-The framework is designed using scalable enterprise automation architecture patterns.
+An enterprise-grade test automation framework built with **Playwright** and **TypeScript**, covering UI, API, Database, Accessibility, Visual Regression, and Mobile testing — with full CI/CD integration, Allure reporting, and Slack notifications.
 
 ---
 
-# Tech Stack
+## 📌 Table of Contents
 
-| Technology | Purpose                |
-| ---------- | ---------------------- |
-| Playwright | UI + API Automation    |
-| TypeScript | Strong typing          |
-| PostgreSQL | Database validation    |
-| pgAdmin4   | Database management    |
-| Node.js    | Runtime environment    |
-| dotenv     | Environment management |
-| GitHub     | Version control        |
+- [Tech Stack](#-tech-stack)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [Environment Setup](#-environment-setup)
+- [Project Structure](#-project-structure)
+- [Running Tests](#-running-tests)
+- [Test Coverage](#-test-coverage)
+- [CI/CD Pipelines](#-cicd-pipelines)
+- [Reporting](#-reporting)
+- [Framework Architecture](#-framework-architecture)
+- [Design Patterns](#-design-patterns)
+- [Security Practices](#-security-practices)
 
 ---
 
-# Framework Architecture
+## 🛠 Tech Stack
+
+| Technology | Version | Purpose |
+|---|---|---|
+| Playwright | ^1.60.0 | UI + API Automation |
+| TypeScript | Latest | Strong typing |
+| Node.js | 20+ | Runtime environment |
+| PostgreSQL | 15 | Database validation |
+| dotenv | ^17.4.2 | Environment management |
+| axe-core/playwright | ^4.11.3 | Accessibility testing |
+| allure-playwright | ^3.9.0 | Test reporting |
+| GitHub Actions | — | CI/CD pipelines |
+
+---
+
+## ✅ Prerequisites
+
+- Node.js v20 or higher
+- npm v9 or higher
+- PostgreSQL (for database tests only)
+- Allure CLI (for local report generation)
+
+```bash
+# Install Allure CLI globally
+npm install -g allure-commandline
+
+# Verify installations
+node --version
+npm --version
+psql --version
+allure --version
+```
+
+---
+
+## 📦 Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/shree-sdet/playwright-enterprise-framework.git
+cd playwright-enterprise-framework
+
+# 2. Install dependencies
+npm ci
+
+# 3. Install Playwright browsers
+npx playwright install --with-deps
+```
+
+---
+
+## ⚙️ Environment Setup
+
+Create a `.env` file in the project root (never commit this file):
+
+```env
+# Environment selector: qa | staging | prod
+ENV=qa
+
+# Base URLs per environment
+QA_BASE_URL=https://www.saucedemo.com
+STAGE_BASE_URL=https://staging.example.com
+PROD_BASE_URL=https://prod.example.com
+
+# Auth credentials
+USERNAME=standard_user
+PASSWORD=secret_sauce
+
+# Database (required only for DB tests)
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_db_password
+DB_NAME=playwright_framework_db
+```
+
+> **Note:** `.env` and `auth/userAuth.json` are git-ignored and must never be committed.
+
+### Switch environments
+
+```bash
+# Run against staging
+ENV=staging npx playwright test
+
+# Run against production
+ENV=prod npx playwright test
+```
+
+---
+
+## 📁 Project Structure
 
 ```text
 playwright-enterprise-framework/
 │
+├── .github/
+│   └── workflows/
+│       ├── playwright_basic.yml      # Standard CI pipeline (chromium)
+│       ├── playwright_shard.yml      # Sharded parallel pipeline (3×3 matrix)
+│       └── playwright_visual.yml     # Visual regression pipeline
+│
 ├── api-clients/
+│   └── PostsApiClient.ts             # Reusable API client abstraction
+│
 ├── components/
+│   └── HeaderComponent.ts            # Reusable UI component (header/menu)
+│
 ├── config/
+│   ├── allure-config/
+│   │   ├── categories.json           # Allure failure categorization rules
+│   │   └── environment.properties    # Allure environment metadata
+│   └── env.ts                        # Multi-environment config loader
+│
 ├── db/
+│   └── databaseClient.ts             # PostgreSQL client abstraction
+│
 ├── fixtures/
+│   └── baseFixture.ts                # Custom fixtures + auto failure hooks
+│
 ├── mocks/
+│   └── saucedemo.har                 # HAR recording for network replay
+│
 ├── pages/
+│   ├── BasePage.ts                   # Base page with shared methods
+│   ├── LoginPage.ts                  # Login page object
+│   └── InventoryPage.ts              # Inventory page object
+│
 ├── test-data/
+│   ├── loginUsers.json               # User test data
+│   └── products.json                 # Product test data
+│
 ├── tests/
+│   ├── accessibility/
+│   │   ├── colorContrast.spec.ts     # WCAG 2AA color contrast scan
+│   │   ├── keyboardNavigation.spec.ts# Keyboard-only navigation tests
+│   │   └── loginAccessibility.spec.ts# Full axe-core accessibility scan
 │   ├── api/
-│   └── ui/
+│   │   ├── databaseValidation.spec.ts# DB CRUD + validation tests
+│   │   ├── getUsers.spec.ts          # API GET request tests
+│   │   ├── hybridFlow.spec.ts        # UI + API hybrid test flows
+│   │   └── postsApiClient.spec.ts    # API client layer tests
+│   ├── mobile/
+│   │   └── mobile-verification.spec.ts# Mobile viewport + behavior tests
+│   ├── ui/
+│   │   ├── addToCart.spec.ts         # Cart add functionality
+│   │   ├── allureReportTest.spec.ts  # Allure metadata demonstration
+│   │   ├── cartConflict.spec.ts      # Cart state conflict scenarios
+│   │   ├── harMock.spec.ts           # HAR replay tests
+│   │   ├── inventory.spec.ts         # Inventory page tests
+│   │   ├── login.spec.ts             # Login flow tests
+│   │   ├── logout.spec.ts            # Logout flow tests
+│   │   ├── multipleProducts.spec.ts  # Data-driven product tests
+│   │   ├── networkMock.spec.ts       # Network interception/mocking
+│   │   ├── productValidation.spec.ts # Product data validation
+│   │   └── removeFromCart.spec.ts    # Cart remove functionality
+│   ├── visual/
+│   │   └── loginPageVisual.spec.ts   # Visual regression tests (@visual)
+│   └── auth.setup.ts                 # Authentication setup (storageState)
+│
 ├── utils/
-├── playwright.config.ts
-├── package.json
-├── tsconfig.json
+│   ├── testDataManager.ts            # Test data access helpers
+│   └── types.ts                      # Shared TypeScript interfaces
+│
+├── playwright.config.ts              # Playwright configuration
+├── package.json                      # Dependencies + npm scripts
+├── tsconfig.json                     # TypeScript configuration
 └── README.md
 ```
 
 ---
 
-# Features Implemented
+## 🚀 Running Tests
 
-## UI Automation
-
-* Page Object Model (POM)
-* Reusable BasePage
-* Reusable UI components
-* Assertions & auto waiting
-* Cross-browser execution
-
----
-
-## Fixtures Architecture
-
-Implemented:
-
-* Custom fixtures
-* Auto fixtures
-* Worker-scoped fixtures
-* Dependency injection
-* Centralized setup & teardown
-
-### Worker Fixtures Used For
-
-* Database connections
-* Shared reusable resources
-* Optimized execution
-
----
-
-# API Automation
-
-Implemented:
-
-* GET requests
-* POST requests
-* PUT requests
-* DELETE requests
-* APIRequestContext
-* Authentication headers
-* Reusable API client architecture
-* Hybrid UI + API testing
-
-### API Client Layer
-
-Reusable abstraction layer for API operations.
-
-Example:
-
-```ts
-getPosts()
-createPost()
-deletePost()
-```
-
----
-
-# Database Testing
-
-Implemented:
-
-* PostgreSQL integration
-* pg library integration
-* Database validation
-* Dynamic test data generation
-* Cleanup strategies
-* Worker-scoped DB fixtures
-* Parameterized queries
-
-### Database Client Architecture
-
-Reusable DB abstraction layer.
-
-Example:
-
-```ts
-getUserById()
-createUser()
-deleteUser()
-```
-
----
-
-# Mocking & Network Interception
-
-Implemented:
-
-* route.continue()
-* route.fulfill()
-* route.abort()
-* Request interception
-* Response mocking
-* HAR recording
-* HAR replay
-
----
-
-# Dynamic Test Data Strategy
-
-Implemented:
-
-* Timestamp-based unique data generation
-* Dynamic users
-* Parallel-safe execution
-* Automated cleanup
-
-Example:
-
-```ts
-const timestamp = Date.now();
-```
-
----
-
-# Parallel Execution & Isolation
-
-Implemented:
-
-* Parallel execution
-* Worker optimization
-* Retry handling
-* Isolated execution strategy
-* Flaky test prevention
-
----
-
-# Tags & Execution Strategy
-
-Implemented:
-
-* @smoke
-* @regression
-* @api
-* @ui
-* @db
-* @mock
-
-### Example
-
+### All tests
 ```bash
-npx playwright test --grep "@smoke"
+npm test
 ```
 
----
+### By category
+```bash
+npm run test:ui          # UI tests only
+npm run test:api         # API + database tests only
+npm run test:a11y        # Accessibility tests only
+npm run test:visual      # Visual regression tests only
+npm run test:mobile      # Mobile tests (Pixel 7 + iPhone 15)
+```
 
-# Multi-Browser Execution
+### By tag
+```bash
+npx playwright test --grep @smoke        # Smoke suite
+npx playwright test --grep @regression   # Regression suite
+npx playwright test --grep @ui           # UI tagged tests
+npx playwright test --grep @api          # API tagged tests
+npx playwright test --grep @accessibility# Accessibility tagged tests
+npx playwright test --grep @visual       # Visual tagged tests
+npx playwright test --grep @mobile       # Mobile tagged tests
+```
 
-Supported Browsers:
-
-* Chromium
-* Firefox
-* WebKit
-
-### Example
-
+### By browser
 ```bash
 npx playwright test --project=chromium
+npx playwright test --project=firefox
+npx playwright test --project=webkit
+npx playwright test --project="Mobile Chrome"
+npx playwright test --project="Mobile Safari"
 ```
 
----
-
-# Environment Configuration
-
-Centralized environment management using:
-
-* dotenv
-* env.ts
-* process.env
-
-### Example
-
-```env
-ENV=qa
-QA_BASE_URL=https://www.saucedemo.com
-```
-
----
-
-# Security Best Practices
-
-The framework avoids committing:
-
-* .env
-* auth storage files
-* secrets
-* API tokens
-* database passwords
-
-### Recommended .gitignore
-
-```gitignore
-node_modules/
-playwright-report/
-test-results/
-.env
-auth/*.json
-playwright/.auth/
-.DS_Store
-```
-
----
-
-# Sample Commands
-
-## Run All Tests
-
+### Headed / debug mode
 ```bash
-npx playwright test
+npx playwright test --headed             # Run with browser visible
+npx playwright test --debug             # Step-through debugger
+npx playwright test --ui                # Playwright UI mode
 ```
 
----
-
-## Run Smoke Suite
-
+### With Allure report
 ```bash
-npx playwright test --grep "@smoke"
+npm run test:allure   # Clean + run + generate Allure report
+npx allure open allure-report           # Open the report
 ```
 
 ---
 
-## Run API Tests
+## 🧪 Test Coverage
 
+| Category | Tests | Tags | Description |
+|---|---|---|---|
+| **UI** | Login, Logout, Cart, Inventory, Products | `@ui` `@smoke` `@regression` | Core user flows using Page Object Model |
+| **API** | GET, POST, PUT, DELETE | `@api` `@smoke` | REST API testing via APIRequestContext |
+| **Database** | CRUD, validation | `@db` | PostgreSQL validation via pg client |
+| **Hybrid** | UI + API flows | — | Create data via API, validate in UI |
+| **Accessibility** | axe-core, keyboard | `@accessibility` | WCAG 2AA compliance + keyboard-only navigation |
+| **Visual** | Login, Logo, Inventory | `@visual` | Screenshot-based regression with pixel diff |
+| **Mobile** | Viewport, offline, slow network | `@mobile` | Pixel 7 + iPhone 15 device emulation |
+| **Network Mocking** | HAR replay, route interception | — | Mock API responses + HAR recording/replay |
+
+---
+
+## 🔄 CI/CD Pipelines
+
+### Basic Pipeline (`playwright_basic.yml`)
+- Triggers: push to `main`, scheduled daily at 20:30 UTC, manual dispatch
+- Runs: Chromium tests
+- Includes: Postgres service, DB schema setup, browser caching
+- Reports: Allure report deployed to GitHub Pages
+- Notifications: Slack pass/fail messages
+
+### Shard Pipeline (`playwright_shard.yml`)
+- Triggers: push to `main`, scheduled daily
+- Runs: 3 shards × 3 browsers (Chromium, Firefox, WebKit) = 9 parallel jobs
+- Reports: Merged Allure report from all shards deployed to GitHub Pages
+- Notifications: Slack pass/fail messages
+
+### Visual Pipeline (`playwright_visual.yml`)
+- Triggers: manual dispatch only (`workflow_dispatch`)
+- Runs: visual-chromium project with `@visual` tagged tests
+- Reports: Playwright HTML report deployed to GitHub Pages
+- Notifications: Slack pass/fail messages
+
+### GitHub Secrets required
+| Secret | Description |
+|---|---|
+| `QA_USERNAME` | Test user username |
+| `QA_PASSWORD` | Test user password |
+| `DB_PASSWORD` | PostgreSQL password |
+| `SLACK_WEBHOOK_URL` | Slack incoming webhook URL |
+
+---
+
+## 📊 Reporting
+
+### Allure Report (CI)
+Allure reports are automatically generated and deployed to GitHub Pages on every CI run.
+
+**Live report:** `https://shree-sdet.github.io/playwright-enterprise-framework/`
+
+Features:
+- Test steps with business-readable names
+- Failure screenshots attached automatically
+- Video recordings on failure
+- Console log capture
+- Failed network request logging
+- Failure categorization (Locator Issues, Timeout Issues, Assertion Errors, API Failures)
+- Environment metadata (QA / Chromium / BaseURL)
+- Severity, Owner, and Feature labels
+
+### Local Allure Report
 ```bash
-npx playwright test --grep "@api"
-```
-
----
-
-## Run Specific Browser
-
-```bash
-npx playwright test --project=chromium
-```
-
----
-
-# Enterprise Concepts Covered
-
-* Scalable framework architecture
-* Reusable abstraction layers
-* Dependency injection
-* Infrastructure lifecycle management
-* Resource optimization
-* Dynamic test data
-* Environment-driven configuration
-* Hybrid automation strategy
-* Parallel-safe execution
-
----
-
-# Current Learning Coverage
-
-## Playwright
-
-✅ POM
-✅ Fixtures
-✅ Parallel execution
-✅ Mocking
-✅ HAR Replay
-✅ Multi-browser execution
-✅ Environment config
-
----
-
-## API Automation
-
-✅ CRUD operations
-✅ API clients
-✅ Authentication headers
-✅ Hybrid testing
-
----
-
-## Database Automation
-
-✅ PostgreSQL integration
-✅ DB client architecture
-✅ Dynamic data generation
-✅ Cleanup strategies
-✅ Worker-scoped DB fixtures
-
----
-
-# Allure Reporting & Centralized Debugging
-
-## Overview
-
-This framework integrates:
-
-* Playwright HTML Reports
-* Allure Reports
-* Automatic Failure Screenshots
-* Video Recording
-* Console Log Capture
-* Failed Network Request Logging
-* Environment Metadata
-* Failure Categorization
-* Business-Level Test Steps
-
-The goal is to build an enterprise-grade reporting and debugging ecosystem.
-
----
-
-# Why Allure Reporting?
-
-Playwright HTML reports are useful for local execution debugging.
-
-Allure adds:
-
-* Rich dashboards
-* Business-readable reporting
-* Test categorization
-* Attachments
-* Failure analytics
-* Environment tracking
-* Historical trends
-* CI/CD integration
-
----
-
-# Install Allure Dependencies
-
-```bash
-npm install -D allure-playwright allure-commandline
-```
-
----
-
-# Configure Allure Reporter
-
-## playwright.config.ts
-
-```ts
-reporter: [
-  ['html'],
-  ['allure-playwright']
-],
-```
-
----
-
-# Execute Tests
-
-```bash
-npx playwright test
-```
-
-This generates:
-
-```text
-allure-results/
-```
-
-The `allure-results` folder contains:
-
-* test result JSON files
-* attachments
-* screenshots
-* videos
-* metadata
-
----
-
-# Generate Allure Report
-
-```bash
-npx allure generate --output allure-report allure-results
-```
-
----
-
-# Open Allure Report
-
-```bash
+npm run test:allure
 npx allure open allure-report
 ```
 
----
-
-# Important Allure Lifecycle Understanding
-
-## allure-results
-
-Raw execution artifacts.
-
-Contains:
-
-* execution JSON
-* screenshots
-* videos
-* metadata
-* categories
-
-## allure-report
-
-Generated visual dashboard built from `allure-results`.
+### Playwright HTML Report
+```bash
+npx playwright test
+npx playwright show-report
+```
 
 ---
 
-# Important Best Practice
+## 🏗 Framework Architecture
 
-Always run tests before generating reports.
+### Custom Fixtures (`fixtures/baseFixture.ts`)
 
-Correct flow:
+All page objects are injected via custom Playwright fixtures — no manual instantiation in tests.
+
+```ts
+// test automatically gets loginPage, inventoryPage, dbClient etc.
+test('example', async ({ loginPage, inventoryPage, dbClient }) => {
+  // ...
+});
+```
+
+Features:
+- **Worker-scoped DB fixture** — single DB connection shared across tests in a worker
+- **Auto fixture** — runs automatically for every test (logging, screenshot hooks)
+- **Failure hooks** — captures screenshot, console logs, and failed network requests on failure
+
+### Multi-Environment Config (`config/env.ts`)
+
+```ts
+// Switch environment via ENV variable
+ENV=staging npx playwright test
+```
+
+Supports `qa`, `staging`, and `prod` environments with validation — throws an error if `baseURL` is missing.
+
+### Authentication Strategy
+
+Uses Playwright's `storageState` to reuse authenticated sessions across all tests — auth runs once per suite, not per test.
+
+```ts
+// auth/userAuth.json is generated once by auth.setup.ts
+// all projects consume it via storageState: 'auth/userAuth.json'
+```
+
+### Page Object Model
 
 ```text
-Clean old reports
-↓
-Run Playwright tests
-↓
-Generate allure-results
-↓
-Generate allure-report
-↓
-Open report
+BasePage (shared methods)
+  ├── LoginPage
+  └── InventoryPage
+
+HeaderComponent (reusable menu/header)
 ```
 
----
+### API Client Layer (`api-clients/PostsApiClient.ts`)
 
-# Centralized Failure Screenshot Attachment
-
-Implemented inside:
-
-```text
-fixtures/baseFixture.ts
-```
-
-Framework automatically:
-
-* captures screenshot on failure
-* attaches screenshot to Allure
-* works for all tests globally
-
-## Example
+Reusable abstraction over Playwright's `APIRequestContext`:
 
 ```ts
-if (
-  testInfo.status !==
-  testInfo.expectedStatus
-) {
-
-  const screenshot =
-    await testInfo.page!.screenshot();
-
-  await testInfo.attach(
-    'Failure Screenshot',
-    {
-      body: screenshot,
-      contentType: 'image/png'
-    }
-  );
-}
+postsApiClient.getPost(id)
+postsApiClient.createPost(data)
+postsApiClient.updatePost(id, data)
+postsApiClient.deletePost(id)
 ```
 
----
+### Database Client (`db/databaseClient.ts`)
 
-# Why Centralized Debugging Hooks?
-
-Benefits:
-
-* avoids repetitive code
-* standardizes debugging
-* scalable architecture
-* easier maintenance
-* reusable framework behavior
-
-Instead of adding screenshots manually in every test, the framework handles failures automatically.
-
----
-
-# Automatic Console Log Capture
-
-Framework automatically captures:
-
-* browser console logs
-* frontend JavaScript errors
-* warnings
-* runtime failures
-
-## Example
+Reusable PostgreSQL client with parameterized queries and transaction support:
 
 ```ts
-const consoleLogs: string[] = [];
-
-testInfo.page?.on(
-  'console',
-  message => {
-    consoleLogs.push(
-      `[${message.type()}] ${message.text()}`
-    );
-  }
-);
+dbClient.getUserById(id)
+dbClient.createUser(data)
+dbClient.deleteUser(id)
 ```
 
 ---
 
-# Automatic Failed Network Request Logging
+## 🎨 Design Patterns
 
-Framework automatically captures:
-
-* failed API calls
-* aborted requests
-* network failures
-
-## Example
-
-```ts
-const failedRequests: string[] = [];
-
-testInfo.page?.on(
-  'requestfailed',
-  request => {
-    failedRequests.push(
-      `${request.method()} ${request.url()}`
-    );
-  }
-);
-```
+| Pattern | Where used |
+|---|---|
+| Page Object Model (POM) | `pages/` |
+| Component Object | `components/` |
+| Fixture-based DI | `fixtures/baseFixture.ts` |
+| API Client abstraction | `api-clients/` |
+| DB Client abstraction | `db/` |
+| Data-driven testing | `test-data/` + `utils/testDataManager.ts` |
+| Multi-environment config | `config/env.ts` |
+| Auth state reuse | `tests/auth.setup.ts` |
+| Auto fixtures | `baseFixture.ts` (autoLogger) |
+| Worker-scoped resources | `dbClient` fixture |
 
 ---
 
-# Why Failure-Only Attachments?
+## 🔒 Security Practices
 
-Attachments are generated only on failures because:
-
-* avoids noisy reports
-* reduces storage usage
-* improves readability
-* scales better in CI/CD
-
-Enterprise frameworks optimize debugging evidence carefully.
+- `.env` is git-ignored — never committed
+- `auth/userAuth.json` is git-ignored — never committed
+- All credentials loaded from environment variables or GitHub Secrets
+- No hardcoded passwords or tokens in source code
+- `forbidOnly: true` in CI — prevents accidental `test.only` in pipelines
+- Parameterized DB queries — prevents SQL injection
 
 ---
 
-# Playwright Attachments vs Allure Attachments
+## 📋 Allure Failure Categories
 
-Preferred approach:
-
-```ts
-await test.info().attach()
-```
-
-instead of:
-
-```ts
-allure.attachment()
-```
-
-Reason:
-
-* Playwright-native
-* reporter-independent
-* cleaner architecture
-* less tool coupling
-
-Allure automatically consumes Playwright attachments.
-
----
-
-# test.step() vs allure.step()
-
-Preferred:
-
-```ts
-await test.step()
-```
-
-Reason:
-
-* Playwright-native
-* reusable across reporters
-* Allure automatically visualizes steps
-
-Use `test.step()` for:
-
-* Login
-* Add Product
-* Checkout
-* Validation
-
-Avoid tiny technical steps.
-
-Reports should represent:
-
-* business workflow
-* user journey
-
----
-
-# Allure Metadata
-
-## Severity
-
-```ts
-await allure.severity('critical');
-```
-
-## Owner
-
-```ts
-await allure.owner('Shree SDET');
-```
-
-## Feature
-
-```ts
-await allure.feature('Cart Functionality');
-```
-
----
-
-# Where Metadata Appears
-
-| Metadata | Location in Allure |
-| -------- | ------------------ |
-| Steps    | Test details page  |
-| Severity | Labels section     |
-| Owner    | Labels section     |
-| Feature  | Behaviors tab      |
-
----
-
-# Environment Metadata
-
-Create:
-
-```text
-allure-results/environment.properties
-```
-
-## Example
-
-```properties
-Environment=QA
-Browser=Chromium
-BaseURL=https://www.saucedemo.com
-Framework=Playwright Enterprise Framework
-```
-
-This helps enterprise teams identify:
-
-* environment
-* browser
-* execution context
-* framework version
-
----
-
-# Failure Categorization
-
-Create:
-
-```text
-allure-results/categories.json
-```
-
-## Example
-
-```json
-[
-  {
-    "name": "Locator Issues",
-    "matchedStatuses": ["failed"],
-    "messageRegex": ".*locator.*"
-  },
-  {
-    "name": "Timeout Issues",
-    "matchedStatuses": ["failed"],
-    "messageRegex": ".*timeout.*"
-  }
-]
-```
-
-Benefits:
-
-* automatic failure grouping
-* flaky analysis
-* automation health tracking
-* easier debugging
-
----
-
-# Enterprise Reporting Benefits
-
-This reporting architecture provides:
-
-* centralized debugging
-* operational visibility
-* business-readable reports
-* faster root cause analysis
-* scalable CI/CD integration
-* enterprise-grade execution diagnostics
-
----
-
-# Current Reporting Capabilities
-
-Framework currently supports:
-
-* Playwright HTML Reports
-* Allure Reports
-* Automatic Screenshots
-* Video Attachments
-* Console Logs
-* Failed Request Logging
-* Test Steps
-* Severity & Owners
-* Environment Metadata
-* Failure Categories
-* Centralized Failure Hooks
-
----
-
-# Next Planned Enhancements
-
-Upcoming topics:
-
-* GitHub Actions CI/CD
-* Slack Notifications
-* Report Publishing
-* History Trending
-* Flaky Test Tracking
-* Scheduled Execution Pipelines
-* Docker Integration
-
-
-# Design Philosophy
-
-This framework focuses on:
-
-* scalability
-* maintainability
-* reusability
-* enterprise architecture
-* clean separation of concerns
-
-The goal is not just writing automated tests, but building a production-grade automation platform.
+| Category | Matches |
+|---|---|
+| Locator Issues | Errors containing "locator" |
+| Timeout Issues | Errors containing "timeout" |
+| Assertion Errors | Errors containing "expect" |
+| API Failures | Errors containing "API" |
+| Authentication Failures | Errors containing "authentication" |
+| Other Failures | All remaining failures |

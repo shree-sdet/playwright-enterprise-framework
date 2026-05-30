@@ -22,5 +22,7 @@ test('Login page accessibility scan @accessibility', async ({ page }) => {
         console.log(`${v.id} - ${v.help}`);
     });
 
-    expect(results.violations.length).toBeLessThanOrEqual(5);
+    // Known violations on saucedemo.com (3 existing): heading order, landmark, color-contrast
+    // Threshold set to accommodate known issues while catching any new regressions
+    expect(results.violations.length).toBeLessThanOrEqual(3);
 });

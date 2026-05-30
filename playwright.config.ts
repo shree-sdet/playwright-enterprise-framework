@@ -51,22 +51,29 @@ export default defineConfig({
       testIgnore: ['tests/mobile/**'],
       use: {
         ...devices['Desktop Chrome'],
-
         storageState: 'auth/userAuth.json',
       },
-
       dependencies: ['setup'],
     },
 
-    // {
-    //   name: 'firefox',
-    //   use: { ...devices['Desktop Firefox'] },
-    // },
+    {
+      name: 'firefox',
+      testIgnore: ['tests/mobile/**'],
+      use: { 
+        ...devices['Desktop Firefox'], 
+        storageState: 'auth/userAuth.json'
+      },
+      dependencies: ['setup'],
+    },
 
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
+    {
+      name: 'webkit',
+      testIgnore: ['tests/mobile/**'],
+      use: { ...devices['Desktop Safari'], 
+        storageState: 'auth/userAuth.json'
+      },
+      dependencies: ['setup'],
+    },
 
     /* Test against mobile viewports. */
     {
@@ -88,10 +95,9 @@ export default defineConfig({
       name: 'visual-chromium',
       use: {
         ...devices['Desktop Chrome'],
-        storageState: 'auth/userAuth.json',  // ← add this
-
+        storageState: 'auth/userAuth.json',  
       },
-      dependencies: ['setup'],               // ← add this
+      dependencies: ['setup'],               
       grep: /@visual/
     }
 

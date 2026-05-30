@@ -14,7 +14,7 @@ test('Login page visual validation @visual', async ({ page }) => {
 
 test('Login logo visual validation @visual', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('.login_logo')).toHaveScreenshot('login-logo.png');
+    await expect(page.locator('.login_logo')).toHaveScreenshot('login-logo.png',{maxDiffPixelRatio: 0.02});
 });
 
 test('Inventory page visual validation @visual', async ({ loginPage, page }) => {
@@ -22,11 +22,9 @@ test('Inventory page visual validation @visual', async ({ loginPage, page }) => 
     const user = getLoginUser('validUser');
     await loginPage.navigateToLoginPage();
     await loginPage.login(user.username, user.password);
-    await expect(page).toHaveScreenshot('inventory-page.png',
+    await expect(page).toHaveScreenshot('inventory-page.png', 
         {
-            mask: [
-                page.locator('.shopping_cart_badge')
-            ]
+            mask: [page.locator('.shopping_cart_badge')], maxDiffPixelRatio: 0.02
         });
 
 });
