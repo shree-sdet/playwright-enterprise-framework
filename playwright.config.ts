@@ -87,8 +87,11 @@ export default defineConfig({
     {
       name: 'visual-chromium',
       use: {
-        ...devices['Desktop Chrome']
+        ...devices['Desktop Chrome'],
+        storageState: 'auth/userAuth.json',  // ← add this
+
       },
+      dependencies: ['setup'],               // ← add this
       grep: /@visual/
     }
 
