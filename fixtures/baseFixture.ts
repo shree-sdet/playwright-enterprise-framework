@@ -108,6 +108,6 @@ export const test = base.extend<MyFixtures, MyWorkerFixtures>({
         await use(dbClient);
         await dbClient.disconnect();
     }, { scope: 'worker' }]
-});
+}); 
 
 export { expect } from '@playwright/test';

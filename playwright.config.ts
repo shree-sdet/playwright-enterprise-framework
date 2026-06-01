@@ -48,7 +48,7 @@ export default defineConfig({
 
     {
       name: 'chromium',
-      testIgnore: ['tests/mobile/**'],
+      testIgnore: ['tests/mobile/**', 'tests/visual/**'],
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'auth/userAuth.json',
@@ -58,7 +58,7 @@ export default defineConfig({
 
     {
       name: 'firefox',
-      testIgnore: ['tests/mobile/**'],
+      testIgnore: ['tests/mobile/**', 'tests/visual/**'],
       use: { 
         ...devices['Desktop Firefox'], 
         storageState: 'auth/userAuth.json'
@@ -68,7 +68,7 @@ export default defineConfig({
 
     {
       name: 'webkit',
-      testIgnore: ['tests/mobile/**'],
+      testIgnore: ['tests/mobile/**', 'tests/visual/**'],
       use: { ...devices['Desktop Safari'], 
         storageState: 'auth/userAuth.json'
       },
@@ -93,6 +93,7 @@ export default defineConfig({
     // Additional project for visual testing with Chromium, using a consistent viewport size and settings optimized for visual validation.
     {
       name: 'visual-chromium',
+      testDir: './tests/visual',
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'auth/userAuth.json',  

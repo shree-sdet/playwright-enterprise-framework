@@ -23,19 +23,14 @@ test('Get users API test @api @smoke', async ({ request }) => {
 });
 
 //intentional failure test to validate screenshot attachment in allure report
-test.fail('incorrect product to cart', async ({
-    inventoryPage,
-}) => {
+test('incorrect product to cart', async ({}) => {
+
+    test.fail();
+
     await allure.severity('critical');
     await allure.owner('Shree SDET');
     await allure.feature('Cart Functionality');
     
-     await test.step('Add product to cart', async () => {
-        await inventoryPage.addProductToCart('Sauce Labs dark');
-    });
-    await test.step('Validate cart badge count', async () => {
-        const cartCount = await inventoryPage.getCartBadgeCount();
-        expect(cartCount).toBe('1');
-    });
+   throw new Error('Intentional failure for Allure screenshot demo');
 
 });

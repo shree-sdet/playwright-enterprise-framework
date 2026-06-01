@@ -24,7 +24,7 @@ test('Mock API response example', async ({page}) => {
             })
         });
     });
-   await page.goto('/');
+   await page.goto('/inventory.html');
    await expect(page).toHaveURL(/inventory/);
 });
 

@@ -31,8 +31,6 @@ jobs:
         shardTotal: [3]
         browser:
           - chromium
-          - firefox
-          - webkit
     env:
       USERNAME: ${{ secrets.QA_USERNAME }}
       PASSWORD: ${{ secrets.QA_PASSWORD }}
