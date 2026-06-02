@@ -22,6 +22,11 @@ jobs:
         run: docker build -t playwright-framework .
 
       - name: Run Docker Compose
+        env:
+          ENV: qa
+          USERNAME: ${{ secrets.QA_USERNAME }}
+          PASSWORD: ${{ secrets.QA_PASSWORD }}
+          QA_BASE_URL: ${{ secrets.QA_BASE_URL }}
         run: |
           docker compose up --build --abort-on-container-exit
 
