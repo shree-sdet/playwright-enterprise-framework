@@ -27,4 +27,4 @@ jobs:
           BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
           BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
         run: |
-          npx playwright test tests/ui/browserstackSmoke.spec.ts
+          npx browserstack-node-sdk playwright test tests/ui/browserstackSmoke.spec.ts
