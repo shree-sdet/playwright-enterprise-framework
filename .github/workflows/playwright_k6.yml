@@ -1,4 +1,4 @@
-name: QA Automation Pipeline
+name: K6 Pipeline
 
 on:
   push:
