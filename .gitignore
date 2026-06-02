@@ -13,3 +13,4 @@ playwright/.auth/
 trace.zip
 allure-results/
 allure-report/
+.env.browserstack

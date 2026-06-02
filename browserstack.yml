@@ -1,0 +1,18 @@
+userName: ${BROWSERSTACK_USERNAME}
+accessKey: ${BROWSERSTACK_ACCESS_KEY}
+
+framework: playwright
+
+platforms:
+  - os: Windows
+    osVersion: 11
+    browserName: chrome
+    browserVersion: latest
+
+browserstackLocal: false
+
+buildName: Playwright Enterprise Framework
+projectName: QA Portfolio
+
+debug: true
+networkLogs: true

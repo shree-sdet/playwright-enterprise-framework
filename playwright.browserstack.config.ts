@@ -1,0 +1,13 @@
+import { defineConfig } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests',
+
+  reporter: [['html']],
+
+  use: {
+    trace: 'on',
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure'
+  }
+});
