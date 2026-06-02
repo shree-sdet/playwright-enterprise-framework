@@ -6,8 +6,17 @@ export default defineConfig({
   reporter: [['html']],
 
   use: {
+   baseURL: 'https://www.saucedemo.com',
     trace: 'on',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure'
-  }
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        browserName: 'chromium'
+      }
+    }
+  ]
 });
