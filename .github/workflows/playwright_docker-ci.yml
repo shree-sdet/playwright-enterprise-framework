@@ -21,12 +21,9 @@ jobs:
       - name: Build Docker Image
         run: docker build -t playwright-framework .
 
-      - name: Run Playwright Tests
+      - name: Run Docker Compose
         run: |
-          docker run \
-            --rm \
-            -v ${{ github.workspace }}/playwright-report:/app/playwright-report \
-            playwright-framework
+          docker compose up --build --abort-on-container-exit
 
       - name: Verify Report
         run: ls -la playwright-report || true
