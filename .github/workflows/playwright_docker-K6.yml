@@ -98,7 +98,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "Playwright Docker CI workflow completed: ${{ github.workflow }} - ${{ job.status }}\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nRun: <${{ github.server_url }}/{{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>"
+              "text": "Playwright Docker CI workflow completed: ${{ github.workflow }} - ${{ job.status }}\nRepository: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nRun: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Open Workflow Run>\nReport: <${{ steps.deployment.outputs.page_url }}|View Deployed Report>"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
