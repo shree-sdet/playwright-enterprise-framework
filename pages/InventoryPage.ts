@@ -27,9 +27,10 @@ export class InventoryPage extends BasePage {
 
     async getInventoryItemText() {
         const locator = this.page.locator('.inventory_item_name').first();
+        // Wait for element AND parent container to be visible
+        await this.page.locator('.inventory_item').first().waitFor({ state: 'visible', timeout: 5000 });
         await locator.waitFor({ state: 'visible', timeout: 5000 });
         return await locator.textContent();
-
     }
 
     // async addBackpackToCart() {
@@ -37,9 +38,10 @@ export class InventoryPage extends BasePage {
     // }
 
     async addProductToCart(productName: string) {
+        // Add retry logic for better reliability
         const locator = this.page.locator(`.inventory_item:has-text("${productName}") button`);
         await locator.waitFor({ state: 'visible', timeout: 5000 });
-        await locator.click();
+        await locator.click({ timeout: 5000 });
     }
 
     async removeBackpackFromCart() {
