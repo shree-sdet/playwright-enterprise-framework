@@ -2,12 +2,12 @@ import { envConfig } from '../../config/env';
 import { test, expect } from '../../fixtures/baseFixture';
 import { getProduct } from '../../utils/testDataManager';
 
-// test.beforeEach(async ({ page }) => {
-//     // await page.goto('/inventory.html');
-//   //await page.goto('https://www.saucedemo.com/inventory.html');
-//   await page.goto(`${envConfig.baseURL}/inventory.html`);
-//     console.log('Navigation completed');
-// });
+test.beforeEach(async ({ page }) => {
+    // await page.goto('/inventory.html');
+  //await page.goto('https://www.saucedemo.com/inventory.html');
+  await page.goto(`${envConfig.baseURL}/inventory.html`);
+    console.log('Navigation completed');
+});
 
 test.afterEach(async () => {
     console.log('Test execution completed');

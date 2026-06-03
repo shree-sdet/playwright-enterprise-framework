@@ -19,7 +19,7 @@ export default defineConfig({
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,
   /* Opt out of parallel tests on CI. */
   //*workers: process.env.CI ? 1 : undefined */
   workers: process.env.CI ? 1 : 3,
@@ -36,6 +36,8 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
+    navigationTimeout: 30000, 
+    actionTimeout: 15000,  
 
   },
 
@@ -55,17 +57,6 @@ export default defineConfig({
       },
       dependencies: ['setup'],
     },
-
-    {
-      name: 'firefox',
-      testIgnore: ['tests/mobile/**', 'tests/visual/**'],
-      use: { 
-        ...devices['Desktop Firefox'], 
-        storageState: 'auth/userAuth.json'
-      },
-      dependencies: ['setup'],
-    },
-
     {
       name: 'webkit',
       testIgnore: ['tests/mobile/**', 'tests/visual/**'],

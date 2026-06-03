@@ -21,11 +21,15 @@ export class InventoryPage extends BasePage {
     }
 
     async verifyInventoryPageLoaded() {
+        await this.page.waitForLoadState('load');
         await expect(this.inventoryTitle).toHaveText('Products');
     }
 
     async getInventoryItemText() {
-        return await this.page.locator('.inventory_item_name').first().textContent();
+        const locator = this.page.locator('.inventory_item_name').first();
+        await locator.waitFor({ state: 'visible', timeout: 5000 });
+        return await locator.textContent();
+
     }
 
     // async addBackpackToCart() {
@@ -33,7 +37,9 @@ export class InventoryPage extends BasePage {
     // }
 
     async addProductToCart(productName: string) {
-        await this.page.locator(`.inventory_item:has-text("${productName}") button`).click();
+        const locator = this.page.locator(`.inventory_item:has-text("${productName}") button`);
+        await locator.waitFor({ state: 'visible', timeout: 5000 });
+        await locator.click();
     }
 
     async removeBackpackFromCart() {
@@ -48,5 +54,5 @@ export class InventoryPage extends BasePage {
         return this.page.locator('.inventory_item_name', { hasText: productName });
     }
 
-  
+
 }
