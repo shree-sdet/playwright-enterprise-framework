@@ -14,3 +14,4 @@ trace.zip
 allure-results/
 allure-report/
 .env.browserstack
+auth/userAuth.json
