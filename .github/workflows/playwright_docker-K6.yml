@@ -68,11 +68,41 @@ jobs:
       - name: Run API Performance Test
         run: k6 run performance/apiPerformanceTest.js
 
+  contract-test:
+    needs: docker-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Consumer Contract Test
+        run: npx playwright test tests/contract-testing/consumer.spec.ts
+
+      - name: Run Provider Verification Test
+        run: npx playwright test tests/contract-testing/provider.spec.ts
+
+      - name: Upload Contract Test Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: contract-test-report
+          path: playwright-report/
+
   deploy-report:
     if: always()
     needs: 
       - docker-test
       - k6-test
+      - contract-test
 
     runs-on: ubuntu-latest
 
