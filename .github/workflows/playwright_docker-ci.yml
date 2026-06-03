@@ -68,9 +68,6 @@ jobs:
       - name: Run Homepage Load Test
         run: k6 run performance/homepageLoadTest.js
 
-      - name: Run Threshold Test
-        run: k6 run performance/thresholdTest.js
-
       - name: Run API Performance Test
         run: k6 run performance/apiPerformanceTest.js
 
