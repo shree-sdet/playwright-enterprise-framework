@@ -9,6 +9,7 @@ on:
 jobs:
   docker-test:
 
+    environment: qa
     runs-on: ubuntu-latest
 
     steps:
