@@ -2,9 +2,6 @@ name: Playwright Docker CI
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   docker-test:
