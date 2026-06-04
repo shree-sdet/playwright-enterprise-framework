@@ -1,0 +1,24 @@
+# =============================================================================
+# Prometheus Configuration
+# =============================================================================
+# WHAT THIS FILE DOES:
+#   Tells Prometheus where to collect metrics from.
+#   We only need it to scrape one place: Pushgateway.
+#
+# WHY PUSHGATEWAY?
+#   Playwright runs tests and then exits. Prometheus can't scrape a process
+#   that's already finished. So Playwright sends metrics TO Pushgateway,
+#   which stays running. Prometheus then reads from Pushgateway anytime.
+# =============================================================================
+
+global:
+  scrape_interval: 15s   # Check for new metrics every 15 seconds
+
+scrape_configs:
+
+  # Read metrics from Pushgateway
+  # "pushgateway" here is the Docker service name (see docker-compose.yml)
+  - job_name: pushgateway
+    honor_labels: true
+    static_configs:
+      - targets: ['pushgateway:9091']

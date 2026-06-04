@@ -8,5 +8,4 @@ RUN npm install
 
 COPY . .
 
-# CMD ["npx","playwright","test"]
-CMD ["npx","playwright","test","--reporter=html,list"]
+CMD ["npx","playwright","test"]

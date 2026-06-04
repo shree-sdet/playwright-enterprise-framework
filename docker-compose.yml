@@ -1,47 +1,85 @@
-version: '3.9'
+# =============================================================================
+# Docker Compose — All Services
+# =============================================================================
+# WHAT THIS FILE DOES:
+#   Starts 4 services together with one command: docker-compose up
+#
+# THE FLOW:
+#   Playwright tests run
+#       ↓ sends metrics to
+#   Pushgateway (stores metrics)
+#       ↓ scraped by
+#   Prometheus (collects & saves metrics)
+#       ↓ read by
+#   Grafana (shows charts & dashboards)
+#
+# PORTS (open in browser):
+#   http://localhost:9091  → Pushgateway  (raw metrics land here)
+#   http://localhost:9090  → Prometheus   (query metrics here)
+#   http://localhost:3000  → Grafana      (view dashboard here) login: admin/admin
+# =============================================================================
 
 services:
 
+  # ---------------------------------------------------------------------------
+  # 1. DATABASE — PostgreSQL
+  #    Your app's database. Tests use this.
+  # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16
-
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: playwrightdb
-
     ports:
       - "5432:5432"
-
     volumes:
-     - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
-
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 3s
-      retries: 3
+      retries: 5
 
-  playwright:
-    build: .
+  # ---------------------------------------------------------------------------
+  # 2. PUSHGATEWAY — Receives metrics from Playwright
+  #    Playwright can't host a server (it exits after tests).
+  #    So it pushes numbers TO this service instead.
+  # ---------------------------------------------------------------------------
+  pushgateway:
+    image: prom/pushgateway:latest
+    ports:
+      - "9091:9091"
 
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-    environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_NAME: playwrightdb
-      CI: "true" 
-      ENV: ${ENV}                        
-      USERNAME: ${USERNAME}             
-      PASSWORD: ${PASSWORD}              
-      QA_BASE_URL: ${QA_BASE_URL}  
-
+  # ---------------------------------------------------------------------------
+  # 3. PROMETHEUS — Collects and stores metrics
+  #    Every 15 seconds it asks Pushgateway "any new metrics?" and saves them.
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
     volumes:
-      - ./playwright-report:/app/playwright-report
-      - ./test-results:/app/test-results 
-      - ./allure-results:/app/allure-results
+      # Mount our config file so Prometheus knows where to look
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - pushgateway   # Start Pushgateway first
+
+  # ---------------------------------------------------------------------------
+  # 4. GRAFANA — Shows the dashboard
+  #    Reads from Prometheus and displays charts.
+  #    Login: admin / admin
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      # Tell Grafana where Prometheus is
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      # Give Grafana the dashboard JSON file
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus   # Start Prometheus first
