@@ -1,62 +1,80 @@
 # Playwright Enterprise Framework
 
-An enterprise-grade test automation framework built with **Playwright** and **TypeScript**, covering UI, API, Database, Accessibility, Visual Regression, and Mobile testing — with full CI/CD integration, Allure reporting, and Slack notifications.
+An enterprise-grade test automation framework built with **Playwright + TypeScript**, covering **10 testing disciplines** — UI, API, Database, Accessibility, Visual Regression, Mobile, Performance (k6), Contract (Pact), Network Mocking, and Observability (Prometheus + Grafana) — with **5 CI/CD pipelines**, Allure reporting, Docker support, BrowserStack cloud execution, and Slack notifications.
+
+> **Application under test:** [SauceDemo](https://www.saucedemo.com) — a sample e-commerce app used for demonstration purposes.
 
 ---
 
-## 📌 Table of Contents
+## Table of Contents
 
-- [Tech Stack](#-tech-stack)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Environment Setup](#-environment-setup)
-- [Project Structure](#-project-structure)
-- [Running Tests](#-running-tests)
-- [Test Coverage](#-test-coverage)
-- [CI/CD Pipelines](#-cicd-pipelines)
-- [Reporting](#-reporting)
-- [Framework Architecture](#-framework-architecture)
-- [Design Patterns](#-design-patterns)
-- [Security Practices](#-security-practices)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Environment Setup](#environment-setup)
+- [Project Structure](#project-structure)
+- [Running Tests](#running-tests)
+- [Performance Testing k6](#performance-testing-k6)
+- [Contract Testing Pact](#contract-testing-pact)
+- [Observability Stack](#observability-stack)
+- [Docker Support](#docker-support)
+- [BrowserStack Integration](#browserstack-integration)
+- [CICD Pipelines](#cicd-pipelines)
+- [Reporting](#reporting)
+- [Framework Architecture](#framework-architecture)
+- [Design Patterns](#design-patterns)
+- [Security Practices](#security-practices)
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Technology | Version | Purpose |
 |---|---|---|
-| Playwright | ^1.60.0 | UI + API Automation |
-| TypeScript | Latest | Strong typing |
+| Playwright | ^1.60.0 | UI, API, visual, mobile, network testing |
+| TypeScript | Latest | Type-safe framework code |
 | Node.js | 20+ | Runtime environment |
-| PostgreSQL | 15 | Database validation |
-| dotenv | ^17.4.2 | Environment management |
-| axe-core/playwright | ^4.11.3 | Accessibility testing |
-| allure-playwright | ^3.9.0 | Test reporting |
-| GitHub Actions | — | CI/CD pipelines |
+| k6 | Latest | Performance load/spike/stress testing |
+| Pact | ^16.4.0 | Consumer-driven contract testing |
+| PostgreSQL | 16 | Database validation |
+| axe-core/playwright | ^4.11.3 | WCAG 2AA accessibility scanning |
+| allure-playwright | ^3.9.0 | Rich test reporting |
+| prom-client | ^15.1.3 | Custom Prometheus metrics reporter |
+| Prometheus | Latest | Metrics collection and storage |
+| Grafana | Latest | Metrics dashboard visualisation |
+| Docker / Compose | Latest | Containerised test execution |
+| BrowserStack | ^1.55.5 | Cross-browser cloud testing |
+| GitHub Actions | — | 5 CI/CD pipelines |
+| dotenv | ^17.4.2 | Multi-environment config management |
 
 ---
 
-## ✅ Prerequisites
+## Prerequisites
 
-- Node.js v20 or higher
-- npm v9 or higher
-- PostgreSQL (for database tests only)
-- Allure CLI (for local report generation)
+- Node.js v20+
+- npm v9+
+- Docker Desktop (for Docker and observability stack)
+- k6 (for performance tests)
+- PostgreSQL 16 (for DB tests without Docker)
+- Allure CLI (for local Allure reports)
 
 ```bash
 # Install Allure CLI globally
 npm install -g allure-commandline
 
-# Verify installations
-node --version
-npm --version
-psql --version
-allure --version
+# Install k6 on macOS
+brew install k6
+
+# Install k6 on Linux
+sudo apt-get install k6
+
+# Verify tools
+node --version && npm --version && k6 version && allure --version && docker --version
 ```
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 # 1. Clone the repository
@@ -66,15 +84,15 @@ cd playwright-enterprise-framework
 # 2. Install dependencies
 npm ci
 
-# 3. Install Playwright browsers
+# 3. Install Playwright browsers with OS dependencies
 npx playwright install --with-deps
 ```
 
 ---
 
-## ⚙️ Environment Setup
+## Environment Setup
 
-Create a `.env` file in the project root (never commit this file):
+Create a `.env` file in the project root. Never commit this file.
 
 ```env
 # Environment selector: qa | staging | prod
@@ -89,341 +107,476 @@ PROD_BASE_URL=https://prod.example.com
 USERNAME=standard_user
 PASSWORD=secret_sauce
 
-# Database (required only for DB tests)
+# Database
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=your_db_password
 DB_NAME=playwright_framework_db
+
+# Observability (optional)
+PUSHGATEWAY_URL=http://localhost:9091
 ```
 
-> **Note:** `.env` and `auth/userAuth.json` are git-ignored and must never be committed.
+`.env`, `.env.browserstack`, and `auth/userAuth.json` are git-ignored and must never be committed.
 
-### Switch environments
+Switch environments:
 
 ```bash
-# Run against staging
 ENV=staging npx playwright test
-
-# Run against production
 ENV=prod npx playwright test
 ```
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
-```text
+```
 playwright-enterprise-framework/
-│
-├── .github/
-│   └── workflows/
-│       ├── playwright_basic.yml      # Standard CI pipeline (chromium)
-│       ├── playwright_shard.yml      # Sharded parallel pipeline (3×3 matrix)
-│       └── playwright_visual.yml     # Visual regression pipeline
-│
-├── api-clients/
-│   └── PostsApiClient.ts             # Reusable API client abstraction
-│
-├── components/
-│   └── HeaderComponent.ts            # Reusable UI component (header/menu)
-│
-├── config/
-│   ├── allure-config/
-│   │   ├── categories.json           # Allure failure categorization rules
-│   │   └── environment.properties    # Allure environment metadata
-│   └── env.ts                        # Multi-environment config loader
-│
-├── db/
-│   └── databaseClient.ts             # PostgreSQL client abstraction
-│
-├── fixtures/
-│   └── baseFixture.ts                # Custom fixtures + auto failure hooks
-│
-├── mocks/
-│   └── saucedemo.har                 # HAR recording for network replay
-│
-├── pages/
-│   ├── BasePage.ts                   # Base page with shared methods
-│   ├── LoginPage.ts                  # Login page object
-│   └── InventoryPage.ts              # Inventory page object
-│
-├── test-data/
-│   ├── loginUsers.json               # User test data
-│   └── products.json                 # Product test data
-│
-├── tests/
-│   ├── accessibility/
-│   │   ├── colorContrast.spec.ts     # WCAG 2AA color contrast scan
-│   │   ├── keyboardNavigation.spec.ts# Keyboard-only navigation tests
-│   │   └── loginAccessibility.spec.ts# Full axe-core accessibility scan
-│   ├── api/
-│   │   ├── databaseValidation.spec.ts# DB CRUD + validation tests
-│   │   ├── getUsers.spec.ts          # API GET request tests
-│   │   ├── hybridFlow.spec.ts        # UI + API hybrid test flows
-│   │   └── postsApiClient.spec.ts    # API client layer tests
-│   ├── mobile/
-│   │   └── mobile-verification.spec.ts# Mobile viewport + behavior tests
-│   ├── ui/
-│   │   ├── addToCart.spec.ts         # Cart add functionality
-│   │   ├── allureReportTest.spec.ts  # Allure metadata demonstration
-│   │   ├── cartConflict.spec.ts      # Cart state conflict scenarios
-│   │   ├── harMock.spec.ts           # HAR replay tests
-│   │   ├── inventory.spec.ts         # Inventory page tests
-│   │   ├── login.spec.ts             # Login flow tests
-│   │   ├── logout.spec.ts            # Logout flow tests
-│   │   ├── multipleProducts.spec.ts  # Data-driven product tests
-│   │   ├── networkMock.spec.ts       # Network interception/mocking
-│   │   ├── productValidation.spec.ts # Product data validation
-│   │   └── removeFromCart.spec.ts    # Cart remove functionality
-│   ├── visual/
-│   │   └── loginPageVisual.spec.ts   # Visual regression tests (@visual)
-│   └── auth.setup.ts                 # Authentication setup (storageState)
-│
-├── utils/
-│   ├── testDataManager.ts            # Test data access helpers
-│   └── types.ts                      # Shared TypeScript interfaces
-│
-├── playwright.config.ts              # Playwright configuration
-├── package.json                      # Dependencies + npm scripts
-├── tsconfig.json                     # TypeScript configuration
-└── README.md
+|
++-- .github/workflows/
+|   +-- playwright_basic.yml            # Standard CI — chromium + webkit
+|   +-- playwright_shard.yml            # Sharded parallel — 3 shards x 3 browsers
+|   +-- playwright_visual.yml           # Visual regression pipeline
+|   +-- playwright_docker-K6.yml        # Docker + k6 + contract testing
+|   +-- playwright_browserstack.yml     # BrowserStack cloud execution
+|
++-- api-clients/
+|   +-- PostsApiClient.ts               # Reusable REST API client abstraction
+|
++-- components/
+|   +-- HeaderComponent.ts              # Reusable header/menu component object
+|
++-- config/
+|   +-- allure-config/
+|   |   +-- categories.json             # Allure failure categories (6 types)
+|   |   +-- environment.properties      # Allure environment metadata
+|   +-- env.ts                          # Multi-environment config loader
+|
++-- db/
+|   +-- databaseClient.ts               # PostgreSQL client with CRUD + transactions
+|   +-- init.sql                        # Schema + seed data for Docker Postgres
+|
++-- fixtures/
+|   +-- baseFixture.ts                  # Custom fixtures + auto failure hooks
+|
++-- mocks/
+|   +-- saucedemo.har                   # HAR recording for network replay tests
+|
++-- observability/
+|   +-- prometheus.yml                  # Prometheus scrape configuration
+|   +-- grafana/
+|       +-- dashboards/
+|       |   +-- playwright-metrics.json # Pre-built Grafana dashboard
+|       +-- provisioning/
+|           +-- dashboards/playwright.yml
+|           +-- datasources/prometheus.yml
+|
++-- pages/
+|   +-- BasePage.ts                     # Shared page methods (base class)
+|   +-- LoginPage.ts                    # Login page object
+|   +-- InventoryPage.ts                # Inventory page object (parameterized)
+|
++-- performance/
+|   +-- homepageLoadTest.js             # Load test — 2 VUs, 30s
+|   +-- homepageSpikeTest.js            # Spike test — ramp 2 to 20 VUs
+|   +-- stressTest.js                   # Stress test — ramp to 100 VUs
+|   +-- thresholdTest.js                # Threshold assertions test
+|   +-- apiPerformanceTest.js           # API endpoint performance test
+|   +-- README.md                       # k6 test results and observations
+|
++-- reporters/
+|   +-- prometheusReporter.ts           # Custom Playwright -> Pushgateway reporter
+|
++-- test-data/
+|   +-- loginUsers.json                 # User test data
+|   +-- products.json                   # Product test data
+|
++-- tests/
+|   +-- accessibility/
+|   |   +-- colorContrast.spec.ts       # WCAG 2AA color contrast scan
+|   |   +-- keyboardNavigation.spec.ts  # Keyboard-only navigation flow
+|   |   +-- loginAccessibility.spec.ts  # Full axe-core accessibility scan
+|   +-- api/
+|   |   +-- databaseValidation.spec.ts  # DB CRUD validation
+|   |   +-- getUsers.spec.ts            # REST API GET tests
+|   |   +-- hybridFlow.spec.ts          # UI + API hybrid flow tests
+|   |   +-- postsApiClient.spec.ts      # API client abstraction tests
+|   +-- contract-testing/
+|   |   +-- consumer.spec.ts            # Pact consumer contract definition
+|   |   +-- provider.spec.ts            # Pact provider verification
+|   |   +-- pacts/
+|   |       +-- PlaywrightFramework-UserAPI.json
+|   +-- mobile/
+|   |   +-- mobile-verification.spec.ts # Pixel 7 + iPhone 15 tests
+|   +-- ui/
+|   |   +-- addToCart.spec.ts
+|   |   +-- allureReportTest.spec.ts    # Allure metadata demonstration
+|   |   +-- browserstackSmoke.spec.ts   # BrowserStack smoke test
+|   |   +-- cartConflict.spec.ts
+|   |   +-- harMock.spec.ts             # HAR network replay
+|   |   +-- inventory.spec.ts
+|   |   +-- login.spec.ts
+|   |   +-- logout.spec.ts
+|   |   +-- multipleProducts.spec.ts    # Data-driven product tests
+|   |   +-- networkMock.spec.ts         # Route interception + mocking
+|   |   +-- productValidation.spec.ts
+|   |   +-- removeFromCart.spec.ts
+|   +-- visual/
+|   |   +-- loginPageVisual.spec.ts     # Screenshot regression (@visual)
+|   +-- auth.setup.ts                   # One-time auth setup (storageState)
+|   +-- metrics-verification.spec.ts    # Prometheus metrics pipeline verification
+|
++-- utils/
+|   +-- testDataManager.ts              # Type-safe test data access helpers
+|   +-- types.ts                        # Shared TypeScript interfaces
+|
++-- Dockerfile
++-- docker-compose.yml                  # 4-service stack
++-- browserstack.yml                    # BrowserStack platform config
++-- playwright.config.ts                # Main config (6 projects)
++-- playwright.browserstack.config.ts   # BrowserStack config
++-- package.json
++-- tsconfig.json
 ```
 
 ---
 
-## 🚀 Running Tests
+## Running Tests
 
-### All tests
+All tests:
+
 ```bash
 npm test
 ```
 
-### By category
+By category:
+
 ```bash
-npm run test:ui          # UI tests only
-npm run test:api         # API + database tests only
-npm run test:a11y        # Accessibility tests only
-npm run test:visual      # Visual regression tests only
-npm run test:mobile      # Mobile tests (Pixel 7 + iPhone 15)
+npm run test:ui
+npm run test:api
+npm run test:a11y
+npm run test:visual
+npm run test:mobile
 ```
 
-### By tag
-```bash
-npx playwright test --grep @smoke        # Smoke suite
-npx playwright test --grep @regression   # Regression suite
-npx playwright test --grep @ui           # UI tagged tests
-npx playwright test --grep @api          # API tagged tests
-npx playwright test --grep @accessibility# Accessibility tagged tests
-npx playwright test --grep @visual       # Visual tagged tests
-npx playwright test --grep @mobile       # Mobile tagged tests
-```
+By browser project:
 
-### By browser
 ```bash
 npx playwright test --project=chromium
-npx playwright test --project=firefox
 npx playwright test --project=webkit
 npx playwright test --project="Mobile Chrome"
 npx playwright test --project="Mobile Safari"
+npx playwright test --project=visual-chromium
 ```
 
-### Headed / debug mode
+By tag:
+
 ```bash
-npx playwright test --headed             # Run with browser visible
-npx playwright test --debug             # Step-through debugger
-npx playwright test --ui                # Playwright UI mode
+npx playwright test --grep @smoke
+npx playwright test --grep @regression
+npx playwright test --grep @visual
+npx playwright test --grep @accessibility
+npx playwright test --grep @mobile
+npx playwright test --grep @api
 ```
 
-### With Allure report
+Debug modes:
+
 ```bash
-npm run test:allure   # Clean + run + generate Allure report
-npx allure open allure-report           # Open the report
+npx playwright test --headed
+npx playwright test --debug
+npx playwright test --ui
 ```
 
----
+With Allure report:
 
-## 🧪 Test Coverage
-
-| Category | Tests | Tags | Description |
-|---|---|---|---|
-| **UI** | Login, Logout, Cart, Inventory, Products | `@ui` `@smoke` `@regression` | Core user flows using Page Object Model |
-| **API** | GET, POST, PUT, DELETE | `@api` `@smoke` | REST API testing via APIRequestContext |
-| **Database** | CRUD, validation | `@db` | PostgreSQL validation via pg client |
-| **Hybrid** | UI + API flows | — | Create data via API, validate in UI |
-| **Accessibility** | axe-core, keyboard | `@accessibility` | WCAG 2AA compliance + keyboard-only navigation |
-| **Visual** | Login, Logo, Inventory | `@visual` | Screenshot-based regression with pixel diff |
-| **Mobile** | Viewport, offline, slow network | `@mobile` | Pixel 7 + iPhone 15 device emulation |
-| **Network Mocking** | HAR replay, route interception | — | Mock API responses + HAR recording/replay |
-
----
-
-## 🔄 CI/CD Pipelines
-
-### Basic Pipeline (`playwright_basic.yml`)
-- Triggers: push to `main`, scheduled daily at 20:30 UTC, manual dispatch
-- Runs: Chromium tests
-- Includes: Postgres service, DB schema setup, browser caching
-- Reports: Allure report deployed to GitHub Pages
-- Notifications: Slack pass/fail messages
-
-### Shard Pipeline (`playwright_shard.yml`)
-- Triggers: push to `main`, scheduled daily
-- Runs: 3 shards × 3 browsers (Chromium, Firefox, WebKit) = 9 parallel jobs
-- Reports: Merged Allure report from all shards deployed to GitHub Pages
-- Notifications: Slack pass/fail messages
-
-### Visual Pipeline (`playwright_visual.yml`)
-- Triggers: manual dispatch only (`workflow_dispatch`)
-- Runs: visual-chromium project with `@visual` tagged tests
-- Reports: Playwright HTML report deployed to GitHub Pages
-- Notifications: Slack pass/fail messages
-
-### GitHub Secrets required
-| Secret | Description |
-|---|---|
-| `QA_USERNAME` | Test user username |
-| `QA_PASSWORD` | Test user password |
-| `DB_PASSWORD` | PostgreSQL password |
-| `SLACK_WEBHOOK_URL` | Slack incoming webhook URL |
-
----
-
-## 📊 Reporting
-
-### Allure Report (CI)
-Allure reports are automatically generated and deployed to GitHub Pages on every CI run.
-
-**Live report:** `https://shree-sdet.github.io/playwright-enterprise-framework/`
-
-Features:
-- Test steps with business-readable names
-- Failure screenshots attached automatically
-- Video recordings on failure
-- Console log capture
-- Failed network request logging
-- Failure categorization (Locator Issues, Timeout Issues, Assertion Errors, API Failures)
-- Environment metadata (QA / Chromium / BaseURL)
-- Severity, Owner, and Feature labels
-
-### Local Allure Report
 ```bash
 npm run test:allure
 npx allure open allure-report
 ```
 
-### Playwright HTML Report
+---
+
+## Performance Testing k6
+
+5 k6 scripts covering different load patterns:
+
+| Script | Type | VUs | Duration | Thresholds |
+|---|---|---|---|---|
+| homepageLoadTest.js | Load | 2 | 30s | p95 < 500ms, errors < 1% |
+| homepageSpikeTest.js | Spike | 2 to 20 | staged | p95 < 1000ms, errors < 5% |
+| stressTest.js | Stress | ramp to 100 | staged | p95 < 2000ms, errors < 10% |
+| thresholdTest.js | Threshold | 2 | 20s | p95 < 500ms, errors < 1% |
+| apiPerformanceTest.js | API | 5 | 30s | p95 < 1000ms, errors < 1% |
+
 ```bash
-npx playwright test
+k6 run performance/homepageLoadTest.js
+k6 run performance/homepageSpikeTest.js
+k6 run performance/stressTest.js
+k6 run performance/apiPerformanceTest.js
+k6 run --summary-trend-stats="avg,p(90),p(95),p(99)" performance/homepageLoadTest.js
+```
+
+Observed results: Load test passed with avg ~16ms response time, p95 ~17ms, 0% error rate. Spike test revealed HTTP 429 rate limiting under sudden traffic burst — demonstrating real bottleneck detection.
+
+---
+
+## Contract Testing Pact
+
+Consumer-driven contract testing with PactV3 — ensures API consumer and provider stay in sync without full integration tests.
+
+```bash
+# Step 1 — run consumer test, generates contract JSON
+npx playwright test tests/contract-testing/consumer.spec.ts
+
+# Step 2 — run provider verification against generated contract
+npx playwright test tests/contract-testing/provider.spec.ts
+```
+
+How it works:
+
+1. Consumer defines the expected request/response interaction
+2. Pact generates a JSON contract file in `tests/contract-testing/pacts/`
+3. Provider verification runs against the real provider API
+4. Any breaking change on the provider immediately fails verification
+
+The pact JSON is committed so provider verification can run independently in CI.
+
+---
+
+## Observability Stack
+
+Live metrics pipeline: Playwright -> Pushgateway -> Prometheus -> Grafana
+
+```bash
+# Start observability stack
+docker compose up pushgateway prometheus grafana -d
+
+# Run tests — metrics pushed automatically
+npm test
+
+# Open dashboards
+open http://localhost:9091   # Pushgateway
+open http://localhost:9090   # Prometheus
+open http://localhost:3000   # Grafana (admin / admin)
+```
+
+Metrics tracked after every test run:
+
+| Metric | Description |
+|---|---|
+| playwright_tests_passed_total | Count of passed tests |
+| playwright_tests_failed_total | Count of failed tests |
+| playwright_tests_skipped_total | Count of skipped tests |
+
+The Grafana dashboard is pre-provisioned and loads automatically with no manual configuration.
+
+```bash
+# Verify metrics pipeline end-to-end
+npx playwright test tests/metrics-verification.spec.ts
+```
+
+---
+
+## Docker Support
+
+```bash
+# Build and run in Docker
+docker build -t playwright-framework .
+docker run --rm playwright-framework
+
+# Full stack — tests + all services
+docker compose up --build
+
+# Tests + database only
+docker compose up postgres playwright
+```
+
+Services in docker-compose.yml:
+
+| Service | Port | Description |
+|---|---|---|
+| postgres | 5432 | PostgreSQL 16 — schema and seed data auto-loaded from init.sql |
+| pushgateway | 9091 | Receives Playwright metrics pushes |
+| prometheus | 9090 | Scrapes and stores metrics |
+| grafana | 3000 | Dashboard visualisation (admin/admin) |
+
+All services include healthcheck and depends_on for correct startup order.
+
+---
+
+## BrowserStack Integration
+
+Runs tests on real cloud browsers via BrowserStack Automate.
+
+```bash
+# Create .env.browserstack (never commit)
+BROWSERSTACK_USERNAME=your_username
+BROWSERSTACK_ACCESS_KEY=your_access_key
+
+# Run on BrowserStack
+npx browserstack-node-sdk playwright test tests/ui/browserstackSmoke.spec.ts
+```
+
+Current platforms in browserstack.yml:
+
+| OS | Version | Browser | Version |
+|---|---|---|---|
+| Windows | 11 | Chrome | Latest |
+
+---
+
+## CICD Pipelines
+
+5 GitHub Actions workflows:
+
+| Workflow | Trigger | Browsers | Features |
+|---|---|---|---|
+| playwright_basic.yml | push/main, daily, manual | Chromium + WebKit | Postgres service, cache, Slack |
+| playwright_shard.yml | push/main, daily | 3 shards x 3 browsers | Merged Allure report, Slack |
+| playwright_visual.yml | manual | visual-chromium | Snapshot comparison, Pages |
+| playwright_docker-K6.yml | manual | Docker container | k6 + Pact parallel jobs |
+| playwright_browserstack.yml | manual | Windows/Chrome cloud | BrowserStack Automate |
+
+GitHub Secrets required:
+
+| Secret | Used by |
+|---|---|
+| QA_USERNAME | All pipelines |
+| QA_PASSWORD | All pipelines |
+| QA_BASE_URL | All pipelines |
+| DB_PASSWORD | Basic, shard, Docker pipelines |
+| SLACK_WEBHOOK_URL | All pipelines |
+| BROWSERSTACK_USERNAME | BrowserStack pipeline |
+| BROWSERSTACK_ACCESS_KEY | BrowserStack pipeline |
+
+---
+
+## Reporting
+
+Allure report is automatically generated and deployed to GitHub Pages on every CI run.
+
+Live report: https://shree-sdet.github.io/playwright-enterprise-framework/
+
+Features:
+- Test steps with business-readable names
+- Screenshots auto-attached on failure
+- Video recordings retained on failure
+- Console log capture per test
+- Failed network request logging
+- Failure categorisation: Locator Issues, Timeout Issues, Assertion Errors, API Failures, Auth Failures
+- Environment metadata: environment name, browser, base URL
+- Severity, Owner, Feature labels
+
+Local Allure report:
+
+```bash
+npm run test:allure
+npx allure open allure-report
+```
+
+Playwright HTML report:
+
+```bash
 npx playwright show-report
 ```
 
 ---
 
-## 🏗 Framework Architecture
+## Framework Architecture
 
-### Custom Fixtures (`fixtures/baseFixture.ts`)
+### Playwright Projects (6 configured)
 
-All page objects are injected via custom Playwright fixtures — no manual instantiation in tests.
+| Project | Browser | Scope | Auth |
+|---|---|---|---|
+| setup | — | auth.setup.ts only | Generates storageState |
+| chromium | Desktop Chrome | All tests except mobile and visual | Reuses storageState |
+| webkit | Desktop Safari | All tests except mobile and visual | Reuses storageState |
+| Mobile Chrome | Pixel 7 | tests/mobile/ only | None |
+| Mobile Safari | iPhone 15 | tests/mobile/ only | None |
+| visual-chromium | Desktop Chrome | tests/visual/ + @visual tag | Reuses storageState |
+
+### Custom Fixtures
+
+All page objects and utilities are injected via Playwright fixtures — no manual instantiation in tests:
 
 ```ts
-// test automatically gets loginPage, inventoryPage, dbClient etc.
-test('example', async ({ loginPage, inventoryPage, dbClient }) => {
-  // ...
+test('example', async ({ loginPage, inventoryPage, dbClient, postsApiClient }) => {
+  // everything injected automatically
 });
 ```
 
-Features:
-- **Worker-scoped DB fixture** — single DB connection shared across tests in a worker
-- **Auto fixture** — runs automatically for every test (logging, screenshot hooks)
-- **Failure hooks** — captures screenshot, console logs, and failed network requests on failure
+Auto fixture runs for every test: captures console logs, logs failed network requests, attaches screenshot on failure, retains video on failure.
 
-### Multi-Environment Config (`config/env.ts`)
+Worker-scoped dbClient maintains a single database connection per worker, closed automatically after the worker finishes.
+
+### Multi-Environment Config
 
 ```ts
-// Switch environment via ENV variable
+// Throws a clear error if baseURL is missing — never runs silently against wrong env
 ENV=staging npx playwright test
 ```
 
-Supports `qa`, `staging`, and `prod` environments with validation — throws an error if `baseURL` is missing.
+### Auth Strategy
 
-### Authentication Strategy
+Auth runs once per CI run via auth.setup.ts. Session saved to auth/userAuth.json and reused across all projects via storageState. No repeated logins per test.
 
-Uses Playwright's `storageState` to reuse authenticated sessions across all tests — auth runs once per suite, not per test.
+### Custom Prometheus Reporter
 
-```ts
-// auth/userAuth.json is generated once by auth.setup.ts
-// all projects consume it via storageState: 'auth/userAuth.json'
+Implements Playwright's Reporter interface:
+
+```
+onTestEnd() counts pass/fail/skip
+onEnd() pushes 3 metrics to Pushgateway via prom-client
 ```
 
-### Page Object Model
-
-```text
-BasePage (shared methods)
-  ├── LoginPage
-  └── InventoryPage
-
-HeaderComponent (reusable menu/header)
-```
-
-### API Client Layer (`api-clients/PostsApiClient.ts`)
-
-Reusable abstraction over Playwright's `APIRequestContext`:
-
-```ts
-postsApiClient.getPost(id)
-postsApiClient.createPost(data)
-postsApiClient.updatePost(id, data)
-postsApiClient.deletePost(id)
-```
-
-### Database Client (`db/databaseClient.ts`)
-
-Reusable PostgreSQL client with parameterized queries and transaction support:
-
-```ts
-dbClient.getUserById(id)
-dbClient.createUser(data)
-dbClient.deleteUser(id)
-```
+Registered in playwright.config.ts — runs automatically with every execution. Metrics appear in Grafana within 15 seconds.
 
 ---
 
-## 🎨 Design Patterns
+## Design Patterns
 
-| Pattern | Where used |
+| Pattern | Location |
 |---|---|
-| Page Object Model (POM) | `pages/` |
-| Component Object | `components/` |
-| Fixture-based DI | `fixtures/baseFixture.ts` |
-| API Client abstraction | `api-clients/` |
-| DB Client abstraction | `db/` |
-| Data-driven testing | `test-data/` + `utils/testDataManager.ts` |
-| Multi-environment config | `config/env.ts` |
-| Auth state reuse | `tests/auth.setup.ts` |
-| Auto fixtures | `baseFixture.ts` (autoLogger) |
-| Worker-scoped resources | `dbClient` fixture |
+| Page Object Model | pages/ |
+| Component Object | components/HeaderComponent.ts |
+| Fixture-based dependency injection | fixtures/baseFixture.ts |
+| API client abstraction | api-clients/PostsApiClient.ts |
+| DB client abstraction | db/databaseClient.ts |
+| Data-driven testing | test-data/ + utils/testDataManager.ts |
+| Multi-environment config | config/env.ts |
+| Storagestate auth reuse | tests/auth.setup.ts |
+| Auto fixtures | baseFixture.ts autoLogger |
+| Worker-scoped shared resources | dbClient fixture |
+| Custom reporter | reporters/prometheusReporter.ts |
+| Consumer-driven contracts | tests/contract-testing/ |
 
 ---
 
-## 🔒 Security Practices
+## Security Practices
 
-- `.env` is git-ignored — never committed
-- `auth/userAuth.json` is git-ignored — never committed
-- All credentials loaded from environment variables or GitHub Secrets
-- No hardcoded passwords or tokens in source code
-- `forbidOnly: true` in CI — prevents accidental `test.only` in pipelines
-- Parameterized DB queries — prevents SQL injection
+- .env is git-ignored — credentials never committed
+- auth/userAuth.json is git-ignored — session tokens never committed
+- .env.browserstack is git-ignored — cloud credentials never committed
+- All CI credentials stored as GitHub Secrets
+- forbidOnly: true in CI — blocks accidental test.only in pipelines
+- Parameterised PostgreSQL queries — prevents SQL injection
+- BrowserStack credentials via environment variables only
 
 ---
 
-## 📋 Allure Failure Categories
+## Test Coverage Summary
 
-| Category | Matches |
-|---|---|
-| Locator Issues | Errors containing "locator" |
-| Timeout Issues | Errors containing "timeout" |
-| Assertion Errors | Errors containing "expect" |
-| API Failures | Errors containing "API" |
-| Authentication Failures | Errors containing "authentication" |
-| Other Failures | All remaining failures |
+| Category | Files | Key techniques |
+|---|---|---|
+| UI | 11 spec files | POM, fixtures DI, data-driven, storageState |
+| API | 4 spec files | APIRequestContext, client abstraction, CRUD, hybrid |
+| Database | 1 spec file | pg client, parameterised queries, transactions |
+| Accessibility | 3 spec files | axe-core WCAG2AA, keyboard-only flow, color contrast |
+| Visual regression | 1 spec file | Baseline screenshots, masking, pixel threshold, Linux baselines |
+| Mobile | 1 spec file | Pixel 7, iPhone 15, offline mode, slow network |
+| Performance | 5 k6 scripts | Load, spike, stress, threshold, API performance |
+| Contract | 2 spec files | PactV3 consumer + provider, generated contract JSON |
+| Network mocking | 2 spec files | Route interception, HAR replay |
+| Observability | 1 spec file | Prometheus metrics verification |
