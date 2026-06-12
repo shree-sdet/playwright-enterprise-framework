@@ -11,7 +11,6 @@ An enterprise-grade test automation framework built with **Playwright + TypeScri
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Environment Setup](#environment-setup)
 - [Project Structure](#project-structure)
 - [Running Tests](#running-tests)
 - [Performance Testing k6](#performance-testing-k6)
@@ -87,47 +86,6 @@ npm ci
 # 3. Install Playwright browsers with OS dependencies
 npx playwright install --with-deps
 ```
-
----
-
-## Environment Setup
-
-Create a `.env` file in the project root. Never commit this file.
-
-```env
-# Environment selector: qa | staging | prod
-ENV=qa
-
-# Base URLs per environment
-QA_BASE_URL=https://www.saucedemo.com
-STAGE_BASE_URL=https://staging.example.com
-PROD_BASE_URL=https://prod.example.com
-
-# Auth credentials
-USERNAME=standard_user
-PASSWORD=secret_sauce
-
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=your_db_password
-DB_NAME=playwright_framework_db
-
-# Observability (optional)
-PUSHGATEWAY_URL=http://localhost:9091
-```
-
-`.env`, `.env.browserstack`, and `auth/userAuth.json` are git-ignored and must never be committed.
-
-Switch environments:
-
-```bash
-ENV=staging npx playwright test
-ENV=prod npx playwright test
-```
-
----
 
 ## Project Structure
 
@@ -438,18 +396,6 @@ Current platforms in browserstack.yml:
 | playwright_visual.yml | manual | visual-chromium | Snapshot comparison, Pages |
 | playwright_docker-K6.yml | manual | Docker container | k6 + Pact parallel jobs |
 | playwright_browserstack.yml | manual | Windows/Chrome cloud | BrowserStack Automate |
-
-GitHub Secrets required:
-
-| Secret | Used by |
-|---|---|
-| QA_USERNAME | All pipelines |
-| QA_PASSWORD | All pipelines |
-| QA_BASE_URL | All pipelines |
-| DB_PASSWORD | Basic, shard, Docker pipelines |
-| SLACK_WEBHOOK_URL | All pipelines |
-| BROWSERSTACK_USERNAME | BrowserStack pipeline |
-| BROWSERSTACK_ACCESS_KEY | BrowserStack pipeline |
 
 ---
 
